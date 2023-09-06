@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 
+#include "physics_state.hpp"
 #include "spring.hpp"
 #include "gravity.hpp"
 

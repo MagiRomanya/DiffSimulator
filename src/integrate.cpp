@@ -1,6 +1,7 @@
 #include "linear_algebra.hpp"
 #include "physics_state.hpp"
 #include "simulation_parameters.hpp"
+#include <iostream>
 #include <vector>
 
 
@@ -22,6 +23,8 @@ void integrate(const SimulationParameters& sim_param, PhysicsState* state, const
     SparseMatrix equation_matrix = mass_matrix - h * df_dv - h * h * df_dx;
 
     handle_frozen_dof(sim_param.frozen_dof, &equation_vector, &equation_matrix);
+    // std::cout << equation_matrix << std::endl;
+    // std::cout << equation_vector << std::endl;
 
     // Gradient conjugate solving method class
     Eigen::ConjugateGradient<Eigen::SparseMatrix<Scalar>> cg;
@@ -33,7 +36,7 @@ void integrate(const SimulationParameters& sim_param, PhysicsState* state, const
     // Updating the state
     state->time += h;
     state->q_dot += delta_q_dot;
-    state->q += state->q_dot;
+    state->q += state->q_dot * h;
 }
 
 struct FrozenDoFPredicate {
@@ -43,8 +46,8 @@ struct FrozenDoFPredicate {
         // Keep elements in the diagonal and outside the dof column and row
         for (unsigned int i = 0; i < frozen_dof.size(); i++) {
             unsigned int dof = frozen_dof[i];
-            if ((row==dof) or (col==dof)) return false;
-            else if (row==col) return true;
+            if (row==col) return true;
+            else if ((row==dof) or (col==dof)) return false;
         }
         return true;
     }
@@ -56,6 +59,6 @@ void handle_frozen_dof(const std::vector<unsigned int>& frozen_dof, Vector* eq_v
     // Eliminate non zeros from the rows and columns
     (*eq_mat).prune(FrozenDoFPredicate(frozen_dof));
     for (unsigned int i = 0; i < frozen_dof.size(); i++) {
-        (*eq_vec)[i] = 0.0;
+        (*eq_vec)[frozen_dof[i]] = 0.0;
     }
 }
