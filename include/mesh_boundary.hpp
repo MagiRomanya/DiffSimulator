@@ -10,4 +10,7 @@ void mesh_boundary(const std::vector<Scalar>& vertices,
                    std::vector<Edge> &internalEdges,
                    std::vector<Edge> &externalEdges);
 
+
+std::array<unsigned int, 2> count_springs(const std::vector<Scalar>& vertices, const std::vector<unsigned int>& indices);
+
 #endif // MESH_BOUNDARY_H_

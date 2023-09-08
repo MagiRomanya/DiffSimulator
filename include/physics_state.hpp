@@ -50,4 +50,8 @@ inline Vec3 get_particle_velocity(const PhysicsState* state, unsigned int index)
  */
 void integrate(const SimulationParameters& sim_param, PhysicsState* state, const EnergyDerivatives& f);
 
+void handle_frozen_dof(const std::vector<unsigned int>& frozen_dof, SparseMatrix* mat);
+
+void handle_frozen_dof(const std::vector<unsigned int>& frozen_dof, Vector* vec);
+
 #endif // PHYSICS_STATE_H_

@@ -32,4 +32,10 @@ struct Parameter {
     unsigned int index;
 };
 
+inline Parameter create_parameter(SimulationParameters* sim_parameters, Scalar value, unsigned int index) {
+    Parameter param = {.value=value, .index=index};
+    sim_parameters->p[index] = value;
+    return param;
+}
+
 #endif // SIMULATION_PARAMETERS_H_

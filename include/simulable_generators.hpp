@@ -19,6 +19,15 @@ Simulable generate_mass_spring(Simulation* simulation,
                           Scalar stiffness,
                           Scalar bend_stiffness);
 
+
+Simulable generate_mass_spring(Simulation* simulation,
+                          const std::vector<Scalar>& vertices,
+                          const std::vector<unsigned int>& indices,
+                          Scalar node_mass,
+                          const std::vector<Scalar>& stiffness_values,
+                          const std::vector<Scalar>& bend_stiffness_values);
+
 Simulable generate_mass_spring_pair(Simulation* simulation, Scalar node_mass, Scalar stiffness_value);
+
 
 #endif // SIMULABLE_GENERATORS_H_

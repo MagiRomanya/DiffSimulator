@@ -14,6 +14,7 @@ set(SOURCE_FILES
   src/edge.cpp
   src/mesh_boundary.cpp
   src/integrate.cpp
+  src/utility_functions.cpp
 )
 
 set(SOURCE_FILES_MAIN
@@ -24,11 +25,10 @@ set(SOURCE_FILES_MAIN
 # set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_BUILD_TYPE Release)
 
-# add_subdirectory(${RENDERER_DIR} ${CMAKE_SOURCE_DIR}/build/render)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/pybind11/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/raylib/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/eigen/)
-
 
 
 # set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -Wall)
@@ -47,22 +47,23 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   raylib
 )
 
-# set(PYTHON_MODULE_NAME "symulathon")
+set(PYTHON_MODULE_NAME "symulathon")
 
-# set(PYTHON_MODULE_SRC
-#   ${SOURCE_FILES}
-#   src/pybinding_class.cpp
-#   )
+set(PYTHON_MODULE_SRC
+  ${SOURCE_FILES}
+  src/pysimulation.cpp
+  src/pybinding.cpp
+  )
 
-# pybind11_add_module(${PYTHON_MODULE_NAME} MODULE ${PYTHON_MODULE_SRC})
+pybind11_add_module(${PYTHON_MODULE_NAME} MODULE ${PYTHON_MODULE_SRC})
 
-# target_include_directories(${PYTHON_MODULE_NAME} PUBLIC
-#   ${CMAKE_CURRENT_SOURCE_DIR}/include/
-#   ${CMAKE_CURRENT_SOURCE_DIR}/external/pybind/include/
-#   ${CMAKE_CURRENT_SOURCE_DIR}/external/eigen/
-#   ${RENDERER_DIR}/include/
-# )
+target_include_directories(${PYTHON_MODULE_NAME} PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/pybind/include/
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/eigen/
+  ${RENDERER_DIR}/include/
+)
 
-# target_link_libraries(${PYTHON_MODULE_NAME} PUBLIC
-#   renderer
-# )
+target_link_libraries(${PYTHON_MODULE_NAME} PUBLIC
+  raylib
+)

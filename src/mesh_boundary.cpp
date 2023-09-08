@@ -1,6 +1,8 @@
 #include "mesh_boundary.hpp"
+#include "edge.hpp"
 #include "linear_algebra.hpp"
 #include <cstdio>
+#include <vector>
 
 void mesh_boundary(const std::vector<Scalar>& vertices,
                    const std::vector<unsigned int>& indices,
@@ -77,4 +79,14 @@ void mesh_boundary(const std::vector<Scalar>& vertices,
             internalEdges.push_back(edges[i+1]);
         }
     }
+}
+
+std::array<unsigned int, 2> count_springs(const std::vector<Scalar>& vertices, const std::vector<unsigned int>& indices) {
+    std::vector<Edge> internalEdges, externalEdges;
+    mesh_boundary(vertices, indices, internalEdges, externalEdges);
+
+    unsigned int n_flex = internalEdges.size() / 2.0 + externalEdges.size();
+    unsigned int n_bend = internalEdges.size() / 2.0;
+
+    return {n_flex, n_bend};
 }
