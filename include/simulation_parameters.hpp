@@ -32,10 +32,21 @@ struct Parameter {
     unsigned int index;
 };
 
+
+/**
+ * Initialize a parameter and updates the parameter vector.
+ *
+ * There is no memory allocation happening here. It is assumed that the index will be valid in the parameter vector.
+ * @param sim_parameters The simulation parameters with the parameter vector
+ * @param value The value of the parameter
+ * @param index The index of the paramiter inside of the parameter vector
+ * @return The created parameter
+ */
 inline Parameter create_parameter(SimulationParameters* sim_parameters, Scalar value, unsigned int index) {
     Parameter param = {.value=value, .index=index};
     sim_parameters->p[index] = value;
     return param;
 }
+
 
 #endif // SIMULATION_PARAMETERS_H_

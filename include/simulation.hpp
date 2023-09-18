@@ -5,11 +5,15 @@
 #include "interaction_manager.hpp"
 #include "physics_state.hpp"
 #include "simulation_parameters.hpp"
+#include "contact.hpp"
 
 struct Simulation {
     SimulationParameters simulation_parameters;
 
     InteractionManager interaction_manager;
+
+    ContactManager contact_manager;
+
 
     PhysicsState getInitialState() {
         PhysicsState state;
@@ -24,7 +28,13 @@ struct Simulation {
         const unsigned int nParameters = simulation_parameters.p.size();
         EnergyDerivatives f(nDoF, nParameters);
 
+        // Interaction force and derivatives callculation
         interaction_manager.calculate_energy_derivatives(state, &f);
+
+        // Collision search and response
+        std::vector<ContactData> contacts;
+        contact_manager.find_contacts(*state, contacts);
+        contact_manager.compute_contacts_energy_derivatives(contacts, &f);
 
         integrate(simulation_parameters, state, f);
     }

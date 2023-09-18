@@ -7,6 +7,7 @@
 #include "simulable.hpp"
 #include "simulation.hpp"
 #include "utility_functions.hpp"
+#include <stdbool.h>
 #include <vector>
 
 class PySimulation {
@@ -15,10 +16,10 @@ class PySimulation {
         ~PySimulation();
 
         /* Two differentiable parameters. */
-        PySimulation(Scalar k, Scalar k_bend);
+        PySimulation(Scalar k, Scalar k_bend, bool graphics=false);
 
         /* A lot of differentiable parameters. */
-        PySimulation(std::vector<Scalar> k, std::vector<Scalar> k_bend);
+        PySimulation(std::vector<Scalar> k, std::vector<Scalar> k_bend, bool graphics=false);
 
         void fill_containers();
 
@@ -45,10 +46,6 @@ class PySimulation {
         int getDoF();
 
         Scalar getTimeStep();
-
-        std::vector<unsigned int> getSpringNodeIndices();
-
-        std::vector<unsigned int> getBendSpringNodeIndices();
 
         std::array<unsigned int, 2> getGridDimensions();
 
@@ -82,6 +79,7 @@ class PySimulation {
         Simulable mass_spring;
 
         // Rendering stuff
+        bool graphics = false;
         Camera3D camera = create_camera(200);
         bool game_paused = false;
         Mesh cloth_mesh;

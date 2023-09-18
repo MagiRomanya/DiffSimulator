@@ -28,9 +28,10 @@ int main() {
 
     // Create the mesh
     //--------------------------------------------------------------------------------------
-    const unsigned int grid_node_width = 2;
+    const unsigned int grid_node_width = 20;
     const float grid_width = 5.0f;
-    Mesh cloth_mesh = GenMeshPlane(grid_width, grid_width, grid_node_width-1, grid_node_width-1);
+    Mesh cloth_mesh = GenMeshPlaneNoGPU(grid_width, grid_width, grid_node_width-1, grid_node_width-1);
+    UploadMesh(&cloth_mesh, true);
     const Texture2D cloth_texture = LoadTexture("resources/warning.png");
     Material cloth_material = LoadMaterialDefault();
     SetMaterialTexture(&cloth_material, 0, cloth_texture);
@@ -58,6 +59,11 @@ int main() {
     simulation.simulation_parameters.frozen_dof.push_back((grid_node_width-1)*3);
     simulation.simulation_parameters.frozen_dof.push_back((grid_node_width-1)*3+1);
     simulation.simulation_parameters.frozen_dof.push_back((grid_node_width-1)*3+2);
+
+    // Add a sphere collider
+    Sphere sphere = {Vec3(0,0,0), 2};
+    simulation.contact_manager.sphere_colliders.push_back(sphere);
+
     //--------------------------------------------------------------------------------------
 
     PhysicsState state = simulation.getInitialState();
@@ -99,13 +105,21 @@ int main() {
         {
 
             ClearBackground(RAYWHITE);
-
             BeginMode3D(camera);
             {
                 DrawMesh(cloth_mesh, cloth_material, MatrixIdentity());
                 DrawGrid(100, 1.0f);
+                for (size_t i = 0; i < simulation.contact_manager.sphere_colliders.size(); i++) {
+                    const Sphere& s = simulation.contact_manager.sphere_colliders[i];
+                    DrawSphere(Vector3(s.center.x(), s.center.y(), s.center.z()), s.radius, GREEN);
+                }
             }
             EndMode3D();
+
+            DrawFPS(50, 50);
+            char time_text[50];
+            sprintf(time_text, "Time = %f", state.time);
+            DrawText(time_text, 50, 80, 20, BLACK);
         }
         EndDrawing();
         //----------------------------------------------------------------------------------

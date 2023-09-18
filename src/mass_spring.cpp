@@ -10,6 +10,7 @@
 #include "simulation_parameters.hpp"
 #include "spring.hpp"
 
+/* Computes euclidean distance between vertex i1 and vertex i2. */
 Scalar distance(const std::vector<Scalar>& vertices, unsigned int i1, unsigned int i2) {
     const Vec3 p1 = Vec3(vertices[3*i1], vertices[3*i1+1], vertices[3*i1+2]);
     const Vec3 p2 = Vec3(vertices[3*i2], vertices[3*i2+1], vertices[3*i2+2]);
@@ -93,12 +94,10 @@ Simulable generate_mass_spring(Simulation* simulation,
     sim_parameters->p.conservativeResize(sim.parameter_index + sim.nParameters);
 
     // Fill parameters
-    Parameter stiffness = Parameter {.value=stiffness_value, .index=sim.parameter_index};
-    Parameter bend_stiffness = Parameter {.value=bend_stiffness_value, .index=sim.parameter_index+1};
-    Parameter rest_length = Parameter {.value=0, .index=sim.parameter_index+2};
-    sim_parameters->p[stiffness.index] = stiffness.value;
-    sim_parameters->p[bend_stiffness.index] = bend_stiffness.value;
-    sim_parameters->p[rest_length.index] = rest_length.value; // garbage
+
+    Parameter stiffness = create_parameter(sim_parameters, stiffness_value, sim.parameter_index);
+    Parameter bend_stiffness = create_parameter(sim_parameters, bend_stiffness_value, sim.parameter_index+1);
+    Parameter rest_length = create_parameter(sim_parameters, 0, sim.parameter_index+2); // garbage
 
 
     // Set up the springs
@@ -180,9 +179,7 @@ Simulable generate_mass_spring(Simulation* simulation,
     sim_parameters->p.conservativeResize(sim.parameter_index + sim.nParameters);
 
     // Garbage rest_length
-    Parameter rest_length = Parameter {.value=0, .index=sim.parameter_index + sim.nParameters-1};
-    sim_parameters->p[rest_length.index] = rest_length.value; // garbage
-
+    Parameter rest_length = create_parameter(sim_parameters, 0, sim.parameter_index+sim.nParameters-1);
 
     // Set up the springs
     std::vector<Edge> internalEdges, externalEdges;
@@ -240,4 +237,19 @@ Simulable generate_mass_spring(Simulation* simulation,
     }
 
     return sim;
+}
+
+void calculate_initial_state_jacobian_tilt_angle(SimulationParameters& paramters, const Simulable& sim, const Parameter& tilt_angle) {
+    const Vec3 origin = Vec3(0, 0, 0);
+    for (size_t i = sim.index; i < sim.index+sim.nDoF; i+=3) {
+        const Vector& x = paramters.q0;
+        const Vec3 point = Vec3(x[i], x[i+1], x[i+2]);
+        const Vec3 delta = point - origin;
+        // x coordinate not affected by rotation
+        // y coordinate
+        paramters.dq0_dp_triplets.push_back(Triplet(i+1, tilt_angle.index, delta.z()));
+
+        // z coordinate
+        paramters.dq0_dp_triplets.push_back(Triplet(i+2, tilt_angle.index, -delta.z()));
+    }
 }

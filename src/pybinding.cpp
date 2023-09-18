@@ -15,12 +15,14 @@ PYBIND11_MODULE(symulathon, m) {
     // Main simulation interface
     py::class_<PySimulation>(m, "Simulation")
         .def(py::init()) // Constructor
-        .def(py::init<Scalar, Scalar>(),
+        .def(py::init<Scalar, Scalar, bool>(),
              py::arg("k"),
-             py::arg("k_bend"))
-        .def(py::init<std::vector<Scalar>, std::vector<Scalar>>(),
+             py::arg("k_bend"),
+             py::arg("graphics")=false)
+        .def(py::init<std::vector<Scalar>, std::vector<Scalar>, bool>(),
              py::arg("k"),
-             py::arg("k_bend"))
+             py::arg("k_bend"),
+             py::arg("graphics")=false)
         .def("fill_containers", &PySimulation::fill_containers)
         .def("set_state", &PySimulation::set_state)
         .def("getEquationMatrix", &PySimulation::getEquationMatrix)
@@ -35,8 +37,8 @@ PYBIND11_MODULE(symulathon, m) {
         .def("getDoF", &PySimulation::getDoF)
         .def("getTimeStep", &PySimulation::getTimeStep)
         .def("render_state", &PySimulation::render_state)
-        .def("getSpringIndices", &PySimulation::getSpringNodeIndices)
-        .def("getBendSpringIndices", &PySimulation::getBendSpringNodeIndices)
+        // .def("getSpringIndices", &PySimulation::getSpringNodeIndices)
+        // .def("getBendSpringIndices", &PySimulation::getBendSpringNodeIndices)
         .def("getGridDimensions", &PySimulation::getGridDimensions)
         .def("getSpringNumbers", &PySimulation::getNumberOfSprings)
         .def("getInitialPositionJacobian", &PySimulation::getInitialPositionJacobian)

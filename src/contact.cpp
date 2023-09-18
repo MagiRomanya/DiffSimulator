@@ -1,109 +1,69 @@
 #include "contact.hpp"
-#include "physics_state.hpp"
 
-double Sphere::distance_point(const Vec3& point, bool& valid) const {
-    /* Distance between a point and a sphere.
-     * The result is positive when the point is outside, zero when the point is on the surface,
-     * and is negative when the point is inside the sphere. */
-
-    valid = true;
-    const Vec3 dv = point - center;
-    return dv.norm() - r;
+void compute_sphere_contact_geometry(const Sphere& sphere, const Vec3& point, ContactData* out) {
+    const Vec3 delta = point - sphere.center;
+    const Scalar distance = delta.norm();
+    out->normal = delta / distance;
+    out->s_distance = distance - sphere.radius;
 }
 
-Vec3 Sphere::outward_direction(const Vec3& point) const {
-    return (point - center).normalized();
+void compute_plane_contact_geometry(const Plane& plane, const Vec3& point, ContactData* out) {
+    out->s_distance = plane.normal.dot(point - plane.center);
+    out->normal = plane.normal;
 }
 
-double InfPlane::distance_point(const Vec3& point, bool& valid) const {
-    /* Distance between a point and a plane.
-     * The result is positive when the point is in the region of space where the
-     * normal of the plane points to the point, zero when the point is on the surface of the
-     * plane, and it is negative if the normal points to the opposite direction of where the point is */
-    valid = true;
-    return normal.dot(point - center);
+Vec3 compute_contact_force(const ContactData& contact) {
+    return - contact.stiffness * contact.s_distance * contact.normal;
 }
 
-Vec3 InfPlane::outward_direction(const Vec3 &point) const {
-    return normal;
+Mat3 compute_contact_force_position_jacobian(const ContactData& contact) {
+    return - contact.stiffness * contact.normal * contact.normal.transpose();
 }
 
-double FinPlane::distance_point(const Vec3& point,  bool& valid) const {
-    /* Returns the distance between a finite plane and a point.
-     * The valid bool means weather or not the point is inside the finite
-     * plane domain or, on the contrary, is outside of it. */
+void compute_contact_energy_derivatives(const ContactData& contact, EnergyDerivatives* f) {
+    // Magnitude calculation
+    Vec3 force = compute_contact_force(contact);
+    Mat3 df_dx = compute_contact_force_position_jacobian(contact);
 
-    const double d = normal.dot(point - center);
-    const Vec3& intersection = point - d * normal;
-    const Vec3& tangent = up.cross3(normal).normalized();
-    const Vec3& bitangent = normal.cross3(tangent).normalized();
-    if (abs((intersection - point).dot(tangent)) > radius) {
-        valid = false;
-        return 0.0f;
-    }
-    if (abs((intersection - point).dot(bitangent)) > radius) {
-        valid = false;
-        return 0.0f;
-    }
-    valid = true;
-    return d;
-}
+    const unsigned int index = contact.index;
+    // Set force
+    f->force[index] = force[0];
+    f->force[index+1] = force[1];
+    f->force[index+2] = force[2];
 
-Vec3 FinPlane::outward_direction(const Vec3 &point) const {
-    return normal;
-}
-
-Contact::Contact(const Sphere* sphere) {
-    geometry_type = SPHERE;
-    geometry = sphere;
-}
-
-Contact::Contact(const InfPlane* plane) {
-    geometry_type = INFPLANE;
-    geometry = plane;
-}
-
-Contact::Contact(const FinPlane* plane) {
-    geometry_type = FINPLANE;
-    geometry = plane;
-}
-
-Contact::~Contact(){
-
-}
-
-void Contact::apply(const PhysicsState* state, EnergyDerivatives* f) {
-    for (int i = 0; i < sys->get_n_particles(); i++) {
-        ///////////// COLLISION DETECTION ///////////////
-        unsigned int index; // Particle index
-        bool valid = true;
-        Vec3 point = get_particle_position(state, index);
-        double dist = geometry->distance_point(point, valid);
-
-        if (!valid) continue;
-        if (dist > 0) continue;
-
-        /////////////// COLLISION RESPONSE ////////////////
-        Vec3 normal_to_surface = geometry->outward_direction(point);
-        Vec3 contact_force = force(normal_to_surface, dist);
-        f->force(index) = contact_force.x();
-        f->force(index+1) = contact_force.y();
-        f->force(index+2) = contact_force.z();
-
-        Eigen::Matrix3d df_dx = force_derivative(state, normal_to_surface, dist);
-        for (int j = 0; j < 3; j++){
-            for (int k = 0; k < 3; k++) {
-                f->df_dx_triplets.push_back(Triplet(index+j, index+k, df_dx(j,k)));
-            }
+    // Set force position jacobian
+    for (size_t i = 0; i < 3; i++){
+        for (size_t j = 0; j < 3; j++) {
+            f->df_dx_triplets.push_back(Triplet(index + i, index + j, df_dx(i, j)));
         }
     }
-
 }
 
-Vec3 Contact::force(const Vec3& direction, const double dist) {
-    return - contact_stiffness * dist * direction;
+void ContactManager::find_contacts(const PhysicsState &state, std::vector<ContactData> &contacts) {
+    // Collision finding
+    ContactData contact;
+    // NOTE Here we assume that all the state is made out of particles,
+    // in the future maybe this will not be true.
+    for (size_t i = 0; i < state.q.size(); i+=3) {
+        unsigned int index=i;
+        contact.index = index;
+        Vec3 point = get_particle_position(&state, index);
+
+        // Spheres
+        for (size_t s = 0; s < sphere_colliders.size(); s++) {
+            compute_sphere_contact_geometry(sphere_colliders[s], point, &contact);
+            if ( contact.s_distance < 0 ) contacts.push_back(contact);
+        }
+        // Planes
+        for (size_t p = 0; p < plane_colliders.size(); p++) {
+            compute_plane_contact_geometry(plane_colliders[p], point, &contact);
+            if ( contact.s_distance < 0 ) contacts.push_back(contact);
+        }
+    }
 }
 
-Eigen::Matrix3d Contact::force_derivative(const PhysicsState* state, const Vec3& direction, const double dist) {
-    return - contact_stiffness * direction * direction.transpose()
+void ContactManager::compute_contacts_energy_derivatives(const std::vector<ContactData>& contacts, EnergyDerivatives* f) {
+    for (size_t i = 0; i < contacts.size(); i++) {
+        compute_contact_energy_derivatives(contacts[i], f);
+    }
 }

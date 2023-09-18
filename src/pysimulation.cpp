@@ -1,4 +1,5 @@
 #include <raylib.h>
+#include <unistd.h>
 #include <vector>
 
 #include "mesh_boundary.hpp"
@@ -12,7 +13,9 @@
 #include "utility_functions.hpp"
 
 PySimulation::~PySimulation() {
-    CloseWindow();
+    if (graphics) {
+        CloseWindow();
+    }
 }
 
 PySimulation::PySimulation()
@@ -20,14 +23,17 @@ PySimulation::PySimulation()
     set_up_simulation();
 }
 
-PySimulation::PySimulation(Scalar k, Scalar k_bend)
+PySimulation::PySimulation(Scalar k, Scalar k_bend, bool graphics)
 {
+    this->graphics = graphics;
     set_up_simulation();
     reset_simulation(k, k_bend);
 }
 
-PySimulation::PySimulation(std::vector<Scalar> k, std::vector<Scalar> k_bend)
+PySimulation::PySimulation(std::vector<Scalar> k, std::vector<Scalar> k_bend, bool graphics)
 {
+
+    this->graphics = graphics;
     set_up_simulation();
     reset_simulation(k, k_bend);
 }
@@ -88,15 +94,12 @@ int PySimulation::getDoF() { return simulation.simulation_parameters.q0.size();}
 
 Scalar PySimulation::getTimeStep() { return simulation.simulation_parameters.TimeStep; }
 
-std::vector<unsigned int> PySimulation::getSpringNodeIndices() {}
-
-std::vector<unsigned int> PySimulation::getBendSpringNodeIndices() {}
-
 std::array<unsigned int, 2> PySimulation::getGridDimensions() { return {grid_n, grid_m}; }
 
 std::array<unsigned int, 2> PySimulation::getNumberOfSprings() { return {n_flex, n_bend}; }
 
 void PySimulation::render_state() {
+    if (not graphics) return;
     // Cameara && inputs
     {
         UpdateCamera(&camera, CAMERA_FREE);
@@ -128,13 +131,19 @@ void PySimulation::render_state() {
 SparseMatrix PySimulation::getInitialPositionJacobian() {
     const unsigned int nDoF = getDoF();
     const unsigned int nParameters = simulation.simulation_parameters.p.size();
-    return SparseMatrix(nDoF, nParameters);
+    SparseMatrix dx0_dp = SparseMatrix(nDoF, nParameters);
+    dx0_dp.setFromTriplets(simulation.simulation_parameters.dq0_dp_triplets.begin(),
+                           simulation.simulation_parameters.dq0_dp_triplets.end());
+    return dx0_dp;
 }
 
 SparseMatrix PySimulation::getInitialVelocityJacobian() {
     const unsigned int nDoF = getDoF();
     const unsigned int nParameters = simulation.simulation_parameters.p.size();
-    return SparseMatrix(nDoF, nParameters);
+    SparseMatrix dv0_dp = SparseMatrix(nDoF, nParameters);
+    dv0_dp.setFromTriplets(simulation.simulation_parameters.dq_dot0_dp_triplets.begin(),
+                           simulation.simulation_parameters.dq_dot0_dp_triplets.end());
+    return dv0_dp;
 }
 
 void PySimulation::reset_simulation(Scalar stiffness, Scalar bend_stiffness) {
@@ -174,7 +183,9 @@ void PySimulation::reset_simulation(std::vector<Scalar> stiffness, std::vector<S
 void PySimulation::set_up_simulation() {
     const int screenWidth = 800*2;
     const int screenHeight = 450*2;
-    InitWindow(screenWidth, screenHeight, "Simulator");
+    if (graphics) {
+        InitWindow(screenWidth, screenHeight, "Simulator");
+    }
     //--------------------------------------------------------------------------------------
 
     const Scalar stiffness = 100.0;
@@ -186,10 +197,13 @@ void PySimulation::set_up_simulation() {
     grid_n = grid_node_width;
     grid_m = grid_node_width;
     const float grid_width = 5.0f;
-    cloth_mesh = GenMeshPlane(grid_width, grid_width, grid_node_width-1, grid_node_width-1);
-    const Texture2D cloth_texture = LoadTexture("../resources/warning.png");
-    cloth_material = LoadMaterialDefault();
-    SetMaterialTexture(&cloth_material, 0, cloth_texture);
+    cloth_mesh = GenMeshPlaneNoGPU(grid_width, grid_width, grid_node_width-1, grid_node_width-1);
+    if (graphics) {
+        UploadMesh(&cloth_mesh, true);
+        const Texture2D cloth_texture = LoadTexture("../resources/warning.png");
+        cloth_material = LoadMaterialDefault();
+        SetMaterialTexture(&cloth_material, 0, cloth_texture);
+    }
     //--------------------------------------------------------------------------------------
 
     // Creating the simulable from the mesh

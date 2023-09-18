@@ -19,9 +19,9 @@ if __name__ == "__main__":
 
     # Define the region studied
     n_points = 21
-    k_values = np.linspace(3.5, 4, n_points)
+    k_values = np.linspace(90, 110, n_points)
     # k_values = np.linspace(6, 9, n_points)
-    k_bend_values = np.linspace(2, 2.5, n_points-1)
+    k_bend_values = np.linspace(0, 1, n_points-1)
     # k_values = np.linspace(3.95, 4.05, n_points)
     # k_bend_values = np.linspace(0, 0.2, n_points)
     # k_values = np.linspace(3.45, 3.55, n_points)

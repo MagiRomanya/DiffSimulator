@@ -15,6 +15,8 @@ set(SOURCE_FILES
   src/mesh_boundary.cpp
   src/integrate.cpp
   src/utility_functions.cpp
+  src/gen_mesh_plane.cpp
+  src/contact.cpp
 )
 
 set(SOURCE_FILES_MAIN

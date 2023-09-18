@@ -10,7 +10,9 @@
 
 /*
  * Construct a simulable from a mesh with mass-spring interactions
- * The vertices positions must be in world coordinates
+ * The vertices positions must be in world coordinates.
+ *
+ * The differentiable parameters are the stiffness, node stiffness and one garbage parameter.
  */
 Simulable generate_mass_spring(Simulation* simulation,
                           const std::vector<Scalar>& vertices,
@@ -19,7 +21,10 @@ Simulable generate_mass_spring(Simulation* simulation,
                           Scalar stiffness,
                           Scalar bend_stiffness);
 
-
+/*
+ * Equally generates a simulable from a mesh using mass-springs.
+ * The differentibale parameters are a stiffness value for each stiffness spring and a bend value for each bend spring.
+ */
 Simulable generate_mass_spring(Simulation* simulation,
                           const std::vector<Scalar>& vertices,
                           const std::vector<unsigned int>& indices,
