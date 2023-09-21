@@ -1,8 +1,13 @@
 #include "utility_functions.hpp"
-#include "raymath.h"
+
+#include <raymath.h>
+#include <rlgl.h>
+
 
 
 Camera3D create_camera(unsigned int FPS) {
+    // Disable backface culling
+    rlDisableBackfaceCulling();
     // Define the camera to look into our 3d world
     Camera3D camera = { 0 };
     camera.position = (Vector3){ 0.0f, 2.0f, 15.0f }; // Camera position
