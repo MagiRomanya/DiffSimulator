@@ -32,7 +32,7 @@ void translate_vertices(std::vector<Scalar>& vert, const Vec3& translation) {
 }
 
 void rotate_vertices_arround_axis(std::vector<Scalar>& vert, const Vec3& rotation) {
-    const Scalar angle = rotation.norm();
+    const Scalar angle = rotation.norm() + 0.000001; // avoid division by zero
     Vector3 axis = Vector3{rotation.x() / angle,
                            rotation.y() / angle,
                            rotation.z() / angle};

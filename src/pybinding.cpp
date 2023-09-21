@@ -19,6 +19,11 @@ PYBIND11_MODULE(symulathon, m) {
              py::arg("k"),
              py::arg("k_bend"),
              py::arg("graphics")=false)
+        .def(py::init<Scalar, Scalar, Scalar, bool>(),
+             py::arg("k"),
+             py::arg("k_bend"),
+             py::arg("tilt_angle"),
+             py::arg("graphics")=false)
         .def(py::init<std::vector<Scalar>, std::vector<Scalar>, bool>(),
              py::arg("k"),
              py::arg("k_bend"),
@@ -45,6 +50,7 @@ PYBIND11_MODULE(symulathon, m) {
         .def("getInitialVelocityJacobian", &PySimulation::getInitialVelocityJacobian)
             // Overloaded methods
         .def("reset_simulation", static_cast<void (PySimulation::*)(Scalar, Scalar)>(&PySimulation::reset_simulation))
+        .def("reset_simulation", static_cast<void (PySimulation::*)(Scalar, Scalar, Scalar)>(&PySimulation::reset_simulation))
         .def("reset_simulation", static_cast<void (PySimulation::*)(std::vector<Scalar>, std::vector<Scalar>)>(&PySimulation::reset_simulation))
         ;
 }

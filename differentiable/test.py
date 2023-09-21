@@ -1,17 +1,34 @@
 #!/usr/bin/env python3
-import matplotlib.pyplot as plt
+
+from symulathon import Simulation
 import numpy as np
+import matplotlib.pyplot as plt
 
+stiffness = 8
+bend_stiffness = 0.1
+tilt_angle = 0
 
-X = np.load("data/x_data.npy")
-Y = np.load("data/y_data.npy")
-g = np.load("data/g_data.npy")
-derivatives_data = np.load("data/dgdk_data.npy.npz")
-dgdk_values, dgdk_bend_values, dgdk_values_finite, dgdk_bend_values_finite = [derivatives_data[dfile] for dfile in derivatives_data.files]
+sim = Simulation(stiffness, bend_stiffness, tilt_angle, False)
+sim.fill_containers()
 
-magnitudes = np.sqrt(dgdk_bend_values**2 + dgdk_values**2)
+x = sim.getPosition()
+dx0dp = sim.getInitialPositionJacobian().todense().T[3].A1
+dx0dp = np.array(dx0dp)
 
-plt.contourf(X, Y, g, levels=300)
-plt.quiver(X, Y, dgdk_values/magnitudes, dgdk_bend_values/magnitudes, color="blue")
-plt.quiver(X, Y, dgdk_values_finite/magnitudes, dgdk_bend_values_finite/magnitudes , color="red")
+# print(x)
+print(dx0dp)
+print(dx0dp.shape)
+
+dp = 0.01
+sim = Simulation(stiffness, bend_stiffness, tilt_angle + dp, False)
+sim.fill_containers()
+
+x2 = sim.getPosition()
+
+dxdp = (x2-x)/dp
+print(dxdp.shape)
+
+plt.plot(dxdp, 'x')
+plt.plot(-dx0dp, '.')
+plt.legend()
 plt.show()

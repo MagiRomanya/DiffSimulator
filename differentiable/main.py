@@ -11,9 +11,9 @@ if __name__ == "__main__":
     nDoF = sim.getDoF()
     mass = sim.getMassMatrix()
     h = sim.getTimeStep()
-    DIFF_FRAMES = 30
+    DIFF_FRAMES = 50
 
-    k_values = np.linspace(0.01, 200, 200)
+    k_values = np.linspace(0.01, 10, 200)
     g_values = []
     dgdp_values = []
     for k in tqdm(k_values):

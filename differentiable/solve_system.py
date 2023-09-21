@@ -12,7 +12,7 @@ def check_cg_convergence(convergence: int):
     """
     if convergence > 0:
         print(f"Warning: conjugate gradient did not converge\
-        with {convergence} iterations")
+        ({convergence} iterations)")
     elif convergence < 0:
         print("Warning: conjugate gradient illegal input")
 

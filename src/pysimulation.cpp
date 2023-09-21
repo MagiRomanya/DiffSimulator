@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <vector>
 
+#include "contact.hpp"
 #include "mesh_boundary.hpp"
 #include "pysimulation.hpp"
 #include "linear_algebra.hpp"
@@ -30,6 +31,12 @@ PySimulation::PySimulation(Scalar k, Scalar k_bend, bool graphics)
     reset_simulation(k, k_bend);
 }
 
+PySimulation::PySimulation(Scalar k, Scalar k_bend, Scalar tilt_angle, bool graphics) {
+    this->graphics = graphics;
+    set_up_simulation();
+    reset_simulation(k, k_bend, tilt_angle);
+}
+
 PySimulation::PySimulation(std::vector<Scalar> k, std::vector<Scalar> k_bend, bool graphics)
 {
 
@@ -47,6 +54,9 @@ void PySimulation::fill_containers() {
     f = EnergyDerivatives(nDoF, nParameters);
     // Calculate the energy derivatives
     simulation.interaction_manager.calculate_energy_derivatives(&state, &f);
+    std::vector<ContactData> contacts;
+    simulation.contact_manager.find_contacts(state, contacts);
+    simulation.contact_manager.compute_contacts_energy_derivatives(contacts, &f);
 
     // Construct sparse matrices & delete previous ones
     df_dx.setFromTriplets(f.df_dx_triplets.begin(), f.df_dx_triplets.end());
@@ -121,6 +131,10 @@ void PySimulation::render_state() {
         {
                 DrawMesh(cloth_mesh, cloth_material, MatrixIdentity());
                 DrawGrid(100, 1.0f);
+                for (size_t i = 0; i < simulation.contact_manager.sphere_colliders.size(); i++) {
+                    const Sphere& s = simulation.contact_manager.sphere_colliders[i];
+                    DrawSphere(Vector3(s.center.x(), s.center.y(), s.center.z()), s.radius, GREEN);
+                }
         }
         EndMode3D();
     }
@@ -134,6 +148,7 @@ SparseMatrix PySimulation::getInitialPositionJacobian() {
     SparseMatrix dx0_dp = SparseMatrix(nDoF, nParameters);
     dx0_dp.setFromTriplets(simulation.simulation_parameters.dq0_dp_triplets.begin(),
                            simulation.simulation_parameters.dq0_dp_triplets.end());
+
     return dx0_dp;
 }
 
@@ -160,7 +175,38 @@ void PySimulation::reset_simulation(Scalar stiffness, Scalar bend_stiffness) {
     sim.simulation_parameters.frozen_dof.push_back((grid_n-1)*3+2);
 
     state = sim.getInitialState();
+
     simulation = sim;
+
+    // Add a sphere collider
+    Sphere sphere = {Vec3(0,0,0), 2};
+    simulation.contact_manager.sphere_colliders.push_back(sphere);
+}
+
+void PySimulation::reset_simulation(Scalar stiffness, Scalar bend_stiffness, Scalar tilt_angle) {
+    angle=tilt_angle;
+    create_mesh();
+    Simulation sim;
+    mass_spring = generate_mass_spring(&sim, vertices, indices, node_mass, stiffness, bend_stiffness);
+
+    // Fix the top 2 corners of the cloth
+    sim.simulation_parameters.frozen_dof.push_back(0);
+    sim.simulation_parameters.frozen_dof.push_back(1);
+    sim.simulation_parameters.frozen_dof.push_back(2);
+
+    sim.simulation_parameters.frozen_dof.push_back((grid_n-1)*3);
+    sim.simulation_parameters.frozen_dof.push_back((grid_n-1)*3+1);
+    sim.simulation_parameters.frozen_dof.push_back((grid_n-1)*3+2);
+
+    state = sim.getInitialState();
+
+    simulation = sim;
+
+    // Add a sphere collider
+    Sphere sphere = {Vec3(0,0,0), 2};
+    simulation.contact_manager.sphere_colliders.push_back(sphere);
+
+    add_tilt_angle_parameter(&simulation.simulation_parameters, mass_spring, tilt_angle);
 }
 
 void PySimulation::reset_simulation(std::vector<Scalar> stiffness, std::vector<Scalar> bend_stiffness) {
@@ -178,6 +224,10 @@ void PySimulation::reset_simulation(std::vector<Scalar> stiffness, std::vector<S
 
     state = sim.getInitialState();
     simulation = sim;
+
+    // Add a sphere collider
+    Sphere sphere = {Vec3(0,0,0), 2};
+    simulation.contact_manager.sphere_colliders.push_back(sphere);
 }
 
 void PySimulation::set_up_simulation() {
@@ -185,6 +235,7 @@ void PySimulation::set_up_simulation() {
     const int screenHeight = 450*2;
     if (graphics) {
         InitWindow(screenWidth, screenHeight, "Simulator");
+        camera = create_camera();
     }
     //--------------------------------------------------------------------------------------
 
@@ -193,36 +244,14 @@ void PySimulation::set_up_simulation() {
 
     // Create the mesh
     //--------------------------------------------------------------------------------------
-    const unsigned int grid_node_width = 20;
-    grid_n = grid_node_width;
-    grid_m = grid_node_width;
-    const float grid_width = 5.0f;
-    cloth_mesh = GenMeshPlaneNoGPU(grid_width, grid_width, grid_node_width-1, grid_node_width-1);
-    if (graphics) {
-        UploadMesh(&cloth_mesh, true);
-        const Texture2D cloth_texture = LoadTexture("../resources/warning.png");
-        cloth_material = LoadMaterialDefault();
-        SetMaterialTexture(&cloth_material, 0, cloth_texture);
-    }
+    create_mesh();
     //--------------------------------------------------------------------------------------
-
-    // Creating the simulable from the mesh
-    //--------------------------------------------------------------------------------------
-    const unsigned int nDoF = cloth_mesh.vertexCount * 3;
-    const unsigned int n_indices = cloth_mesh.triangleCount * 3;
-    vertices = std::vector<Scalar>(cloth_mesh.vertices, cloth_mesh.vertices + nDoF);
-    indices = std::vector<unsigned int>(cloth_mesh.indices, cloth_mesh.indices + n_indices);
-
-    // Reposition the mesh in the world
-    // rotate_vertices_arround_axis(vertices, Vec3(PI/2, 0, 0));
-    translate_vertices(vertices, Vec3(0, grid_width*1.3, 0));
-    cloth_mesh.vertices = vertices.data();
 
     // Create the simulable
     mass_spring = generate_mass_spring(&simulation, vertices, indices, node_mass, stiffness, bend_stiffness);
 
     // Count how many springs of each type there are
-    std::array<unsigned int, 2> nSprings = count_springs(vertices, indices);
+    auto nSprings = count_springs(vertices, indices);
     n_flex = nSprings[0];
     n_bend = nSprings[1];
 
@@ -231,9 +260,9 @@ void PySimulation::set_up_simulation() {
     simulation.simulation_parameters.frozen_dof.push_back(1);
     simulation.simulation_parameters.frozen_dof.push_back(2);
 
-    simulation.simulation_parameters.frozen_dof.push_back((grid_node_width-1)*3);
-    simulation.simulation_parameters.frozen_dof.push_back((grid_node_width-1)*3+1);
-    simulation.simulation_parameters.frozen_dof.push_back((grid_node_width-1)*3+2);
+    simulation.simulation_parameters.frozen_dof.push_back((grid_n-1)*3);
+    simulation.simulation_parameters.frozen_dof.push_back((grid_n-1)*3+1);
+    simulation.simulation_parameters.frozen_dof.push_back((grid_n-1)*3+2);
     //--------------------------------------------------------------------------------------
     // Create the mass matrix
     resize_containers();
@@ -241,6 +270,10 @@ void PySimulation::set_up_simulation() {
                                 simulation.simulation_parameters.mass.end());
 
     state = simulation.getInitialState();
+
+    // Add a sphere collider
+    Sphere sphere = {Vec3(0,0,0), 2};
+    simulation.contact_manager.sphere_colliders.push_back(sphere);
 }
 
 void PySimulation::resize_containers() {
@@ -250,4 +283,30 @@ void PySimulation::resize_containers() {
     df_dv.resize(nDoF, nDoF);
     mass_matrix.resize(nDoF, nDoF);
     equation_matrix.resize(nDoF, nDoF);
+}
+
+
+void PySimulation::create_mesh() {
+    const unsigned int grid_node_width = GRID_NODE_SIDE;
+    grid_n = grid_node_width;
+    grid_m = grid_node_width;
+    const float grid_width = GRID_WIDTH_LENGTH;
+    cloth_mesh = GenMeshPlaneNoGPU(grid_width, grid_width, grid_node_width-1, grid_node_width-1);
+    if (graphics) {
+        UploadMesh(&cloth_mesh, true);
+        const Texture2D cloth_texture = LoadTexture("../resources/warning.png");
+        cloth_material = LoadMaterialDefault();
+        SetMaterialTexture(&cloth_material, 0, cloth_texture);
+    }
+
+    const unsigned int nDoF = cloth_mesh.vertexCount * 3;
+    const unsigned int n_indices = cloth_mesh.triangleCount * 3;
+    vertices = std::vector<Scalar>(cloth_mesh.vertices, cloth_mesh.vertices + nDoF);
+    indices = std::vector<unsigned int>(cloth_mesh.indices, cloth_mesh.indices + n_indices);
+
+    // Reposition the mesh in the world
+    translate_vertices(vertices, Vec3(0, 0, GRID_WIDTH_LENGTH/2));
+    rotate_vertices_arround_axis(vertices, Vec3(angle, 0, 0));
+    translate_vertices(vertices, Vec3(0, grid_width*2, 0));
+    cloth_mesh.vertices = vertices.data();
 }

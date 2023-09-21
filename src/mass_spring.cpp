@@ -239,17 +239,26 @@ Simulable generate_mass_spring(Simulation* simulation,
     return sim;
 }
 
-void calculate_initial_state_jacobian_tilt_angle(SimulationParameters& paramters, const Simulable& sim, const Parameter& tilt_angle) {
-    const Vec3 origin = Vec3(0, 0, 0);
+void calculate_initial_state_jacobian_tilt_angle(SimulationParameters* parameters, const Simulable& sim, const Parameter& tilt_angle) {
+    const Vector& x = parameters->q0;
+    const Vec3 origin = Vec3(x[0], x[1], x[2]);
     for (size_t i = sim.index; i < sim.index+sim.nDoF; i+=3) {
-        const Vector& x = paramters.q0;
         const Vec3 point = Vec3(x[i], x[i+1], x[i+2]);
         const Vec3 delta = point - origin;
+        const Scalar radians_to_degrees_jacobian = PI/180;
         // x coordinate not affected by rotation
         // y coordinate
-        paramters.dq0_dp_triplets.push_back(Triplet(i+1, tilt_angle.index, delta.z()));
+        parameters->dq0_dp_triplets.push_back(Triplet(i+1, tilt_angle.index, - delta.z() * radians_to_degrees_jacobian));
 
         // z coordinate
-        paramters.dq0_dp_triplets.push_back(Triplet(i+2, tilt_angle.index, -delta.z()));
+        parameters->dq0_dp_triplets.push_back(Triplet(i+2, tilt_angle.index, delta.y() * radians_to_degrees_jacobian));
     }
+}
+
+Parameter add_tilt_angle_parameter(SimulationParameters* parameters, const Simulable& sim, Scalar tilt_angle) {
+    unsigned int index = parameters->p.size();
+    parameters->p.conservativeResize(index+1);
+    Parameter tilt_angle_parameter = create_parameter(parameters, tilt_angle, index);
+    calculate_initial_state_jacobian_tilt_angle(parameters, sim, tilt_angle_parameter);
+    return tilt_angle_parameter;
 }

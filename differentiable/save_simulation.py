@@ -25,7 +25,7 @@ if __name__ == "__main__":
     K_VALUE = 3
     RECORD_FRAMES = 500
 
-    k = 100
+    k = 8
     k_bend = 0.1
 
     sim = Simulation(k, k_bend, True)
@@ -48,7 +48,7 @@ if __name__ == "__main__":
         # x_new = x + h * v_new
         # sim.set_state(x_new, v_new)
 
-        iterations = 1
+        iterations = 2
         xi = x
         vi = v
         for it in range(iterations):

@@ -34,5 +34,7 @@ Simulable generate_mass_spring(Simulation* simulation,
 
 Simulable generate_mass_spring_pair(Simulation* simulation, Scalar node_mass, Scalar stiffness_value);
 
+Parameter add_tilt_angle_parameter(SimulationParameters* parameters, const Simulable& sim, Scalar tilt_angle);
+
 
 #endif // SIMULABLE_GENERATORS_H_
