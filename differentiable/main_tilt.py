@@ -40,7 +40,7 @@ def simulate(tilt_angle: float, diff_frames: int):
         ##################################
         # Newton Iterations
         ##################################
-        iterations = 4
+        iterations = 3
         xi = x
         vi = v
         for it in range(iterations):
