@@ -25,7 +25,7 @@ if __name__ == "__main__":
     K_VALUE = 3
     RECORD_FRAMES = 500
 
-    k = 8
+    k = 20
     k_bend = 0.1
 
     sim = Simulation(k, k_bend, True)

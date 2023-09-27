@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-k = 8
+k = 20
 k_bend = 0.1
 sim = Simulation(k, k_bend, 0, get_user_weather_graphics())
 

@@ -43,7 +43,7 @@ def simulate(k, k_bend):
         ##################################
         # Newton Iterations
         ##################################
-        iterations = 3
+        iterations = 1
         xi = x
         vi = v
         for it in range(iterations):

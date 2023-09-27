@@ -71,7 +71,7 @@ def simulate(k_list, k_bend_list, DIFF_FRAMES: int):
         ##################################
         # Newton Iterations
         ##################################
-        iterations = 3
+        iterations = 1
         xi = x
         vi = v
         for it in range(iterations):

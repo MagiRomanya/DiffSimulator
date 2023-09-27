@@ -6,14 +6,20 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from simulation_functions import simulate
 
+plt.rcParams['text.usetex'] = True
+plt.rcParams["savefig.bbox"] = 'tight'
+plt.rcParams["savefig.dpi"] = 96*2
+plt.rcParams["savefig.format"] = 'pdf'
+plt.rcParams["figure.figsize"] = (20,3)
+
 if __name__ == "__main__":
     sim = Simulation(1, 1)
     nDoF = sim.getDoF()
     mass = sim.getMassMatrix()
     h = sim.getTimeStep()
-    DIFF_FRAMES = 50
+    DIFF_FRAMES = 100
 
-    k_values = np.linspace(0.01, 10, 200)
+    k_values = np.linspace(0.01, 40, 3)
     g_values = []
     dgdp_values = []
     for k in tqdm(k_values):
@@ -29,11 +35,11 @@ if __name__ == "__main__":
     dgdp_finite.append(dgdp_finite[-1])
 
     plt.plot(k_values, g_values, "-", label="Loss Function")
-    plt.plot(k_values, dgdp_finite, ".", label="Finite dgdp")
-    plt.plot(k_values, dgdp_values, "x", label="Backpropagation dgdp")
+    plt.plot(k_values, dgdp_finite, ".", label="Finite $\\frac{\mathrm{d}g}{\mathrm{d}p}$")
+    plt.plot(k_values, dgdp_values, "x", label="Back propagation $\\frac{\mathrm{d}g}{\mathrm{d}p}$")
 
     plt.legend()
-    plt.xlabel("k value")
+    plt.xlabel("$k_s$")
     plt.grid()
     plt.show()
     print("Finished succesfully")

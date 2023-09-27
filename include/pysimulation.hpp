@@ -10,8 +10,9 @@
 #include <stdbool.h>
 #include <vector>
 
-#define GRID_NODE_SIDE 10
+#define GRID_NODE_SIDE 20
 #define GRID_WIDTH_LENGTH 5.0f
+// #define ENABLE_CONTACT
 
 class PySimulation {
     public:
