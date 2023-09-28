@@ -186,6 +186,7 @@ void PySimulation::reset_simulation(Scalar stiffness, Scalar bend_stiffness) {
 }
 
 void PySimulation::reset_simulation(Scalar stiffness, Scalar bend_stiffness, Scalar tilt_angle) {
+    // ANGLE IN RADIANTS!!
     angle=tilt_angle;
     create_mesh();
     Simulation sim;
@@ -204,13 +205,13 @@ void PySimulation::reset_simulation(Scalar stiffness, Scalar bend_stiffness, Sca
 
     simulation = sim;
 
+    add_tilt_angle_parameter(&simulation.simulation_parameters, mass_spring, tilt_angle);
+
     // Add a sphere collider
 #ifdef ENABLE_CONTACT
     Sphere sphere = {Vec3(0,0,0), 2};
     simulation.contact_manager.sphere_colliders.push_back(sphere);
 #endif
-
-    add_tilt_angle_parameter(&simulation.simulation_parameters, mass_spring, tilt_angle);
 }
 
 void PySimulation::reset_simulation(std::vector<Scalar> stiffness, std::vector<Scalar> bend_stiffness) {
