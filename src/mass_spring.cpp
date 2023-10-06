@@ -106,7 +106,8 @@ Simulable generate_mass_spring(Simulation* simulation,
 
     unsigned int n_flex = internalEdges.size() / 2.0 + externalEdges.size();
     unsigned int n_bend = internalEdges.size() / 2.0;
-
+    // std::cout << "n_tension = " << n_flex << std::endl;
+    // std::cout << "n_bend = " << n_bend << std::endl;
     for (size_t i = 0; i < externalEdges.size(); i++) {
         Edge &e = externalEdges[i];
         rest_length.value = distance(vertices, e.a, e.b);
