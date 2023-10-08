@@ -1,34 +1,31 @@
 #!/usr/bin/env python3
 
+from solve_system import solve_system
 from symulathon import Simulation
+from simulation_functions import simulate, nFlex, nBend
 import numpy as np
-import matplotlib.pyplot as plt
 
-stiffness = 8
-bend_stiffness = 0.1
-tilt_angle = 0
+k_value = 40
+k_bend_value = 0.1
 
-sim = Simulation(stiffness, bend_stiffness, tilt_angle, False)
-sim.fill_containers()
+bp = simulate(k_value, k_bend_value, 100)
+print(bp.get_dgdp())
+print(f'Single parameter g =\t {bp.get_g()}')
 
-x = sim.getPosition()
-dx0dp = sim.getInitialPositionJacobian().todense().T[3].A1
-dx0dp = np.array(dx0dp)
+tension_springs = [k_value]*nFlex
+bending_springs = [k_bend_value]*nBend
+bp = simulate(tension_springs, bending_springs, 100)
+base_g = bp.get_g()
+print(f'Multiple parameters g =\t {base_g}')
+dgdp = bp.get_dgdp()
 
-# print(x)
-print(dx0dp)
-print(dx0dp.shape)
+index = 33
+dk = 0.01
+tension_springs[index] += dk
+bp = simulate(tension_springs, bending_springs, 100)
+new_g = bp.get_g()
+dgdp2 = bp.get_dgdp()
 
-dp = 0.01
-sim = Simulation(stiffness, bend_stiffness, tilt_angle + dp, False)
-sim.fill_containers()
-
-x2 = sim.getPosition()
-
-dxdp = (x2-x)/dp
-print(dxdp.shape)
-
-plt.plot(dxdp, 'x')
-plt.plot(-dx0dp, '.')
-plt.legend()
-plt.show()
+print(dgdp[index])
+print(dgdp2[index])
+print((base_g - new_g) / dk)

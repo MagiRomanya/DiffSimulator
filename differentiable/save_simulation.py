@@ -24,9 +24,11 @@ if __name__ == "__main__":
     rec = SimulationRecorder()
     K_VALUE = 3
     RECORD_FRAMES = 500
+    sim = Simulation()
 
-    k = 20
-    k_bend = 0.1
+    n_tension, n_bending = sim.getSpringNumbers()
+    k = [70] * n_tension
+    k_bend = [0.1] * n_bending
 
     sim = Simulation(k, k_bend, True)
     h = sim.getTimeStep()

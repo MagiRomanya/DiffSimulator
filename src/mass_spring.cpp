@@ -237,6 +237,10 @@ Simulable generate_mass_spring(Simulation* simulation,
         interaction_manager->m_gravity.push_back(Gravity(sim.index + i, gravity_vec));
     }
 
+    // for (int i = 0; i < sim_parameters->p.size(); i++) {
+    //     std::cout << "Value p("<< i << ") = "  << sim_parameters->p[i] << std::endl;
+    // }
+
     return sim;
 }
 

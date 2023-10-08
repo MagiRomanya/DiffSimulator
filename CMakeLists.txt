@@ -25,6 +25,10 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/external/eigen/CMakeLists.txt")
     message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
 endif()
 
+##########################################
+####### CPP EXECUTABLE COMPILATION #######
+##########################################
+
 set(SOURCE_FILES
   src/spring.cpp
   src/clock.cpp
@@ -68,6 +72,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_link_libraries(${PROJECT_NAME} PUBLIC
   raylib
 )
+
+##########################################
+####### PYTHON LIBRARY COMPILATION #######
+##########################################
 
 set(PYTHON_MODULE_NAME "symulathon")
 

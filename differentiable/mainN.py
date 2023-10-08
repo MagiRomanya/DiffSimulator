@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from symulathon import Simulation, count_springs
+from symulathon import Simulation
 from colorama import Fore, Style
 from animation_plots import AnimatedPlot
 import numpy as np
@@ -13,13 +13,13 @@ def simulation_wrapper(x):
     bp = simulate(x[:nFlex], x[nFlex:], DIFF_FRAMES)
     g = bp.get_g()
     dgdp = bp.get_dgdp()
-    return g, dgdp
+    return g, dgdp[:-1]
 
 
 if __name__ == "__main__":
     # Initialize important constant variables
     sim = Simulation(1, 1)
-    nFlex, nBend = count_springs()
+    nFlex, nBend = sim.getSpringNumbers()
     print(f"nFlex = {nFlex}, nBend = {nBend}, total_diff = {nFlex + nBend}")
     nDoF = sim.getDoF()
     mass = sim.getMassMatrix()
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     res = minimize(simulation_wrapper, x0, jac=True,
                    bounds=Bounds(0, 600),
                    options={"disp": True,
-                            # "maxiter": 100,
+                            "maxiter": 100,
                             })
     print(res)
     x_result = res.x
