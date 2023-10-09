@@ -35,7 +35,7 @@ def check_cg_convergence(convergence: int):
         print("Warning: conjugate gradient illegal input")
 
 
-def solve_system(eq_mat, eq_vec, threshold=1e-5, maxiter=300):
+def solve_system(eq_mat, eq_vec, threshold=1e-6, maxiter=500):
     """
     Solves the sparse linear system defined by one eq_mat & eq_vec.
 

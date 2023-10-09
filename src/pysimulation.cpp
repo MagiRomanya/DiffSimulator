@@ -99,6 +99,7 @@ Mat PySimulation::getParameterJacobian() {
 }
 
 SparseMatrix PySimulation::getForcePositionJacobian() { return df_dx; }
+SparseMatrix PySimulation::getForceVelocityJacobian() { return df_dv; }
 
 int PySimulation::getDoF() { return simulation.simulation_parameters.q0.size();}
 
@@ -242,7 +243,10 @@ void PySimulation::set_up_simulation() {
     const int screenHeight = 450*2;
     if (graphics) {
         InitWindow(screenWidth, screenHeight, "Simulator");
-        camera = create_camera();
+        // Disable raylib info and warnings logs
+        SetTraceLogLevel(LOG_ERROR);
+        // Create a camera with 300 fps
+        camera = create_camera(300);
     }
     //--------------------------------------------------------------------------------------
 

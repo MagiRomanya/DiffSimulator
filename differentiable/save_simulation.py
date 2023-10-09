@@ -50,7 +50,7 @@ if __name__ == "__main__":
         # x_new = x + h * v_new
         # sim.set_state(x_new, v_new)
 
-        iterations = 2
+        iterations = 5
         xi = x
         vi = v
         for it in range(iterations):

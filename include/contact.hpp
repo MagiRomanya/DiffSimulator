@@ -9,7 +9,7 @@
 struct ContactData {
     Vec3   normal;              // Normal vector pointing OUT of the collision geometry
     Scalar s_distance;          // Signed distance (negative inside collider)
-    Scalar stiffness = 10000;    // Contact stiffness
+    Scalar stiffness = 1000;    // Contact stiffness
     unsigned int index;         // Index of the DoF it affects in the PhysicsState vectors
 };
 

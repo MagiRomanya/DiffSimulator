@@ -45,7 +45,7 @@ int main() {
     std::vector<unsigned int> indices(cloth_mesh.indices, cloth_mesh.indices + n_indices);
 
     // Reposition the mesh in the world
-    const Scalar angle = 0.2;
+    const Scalar angle = -90;
     rotate_vertices_arround_axis(vertices, Vec3(PI/2+angle, 0, 0));
     translate_vertices(vertices, Vec3(0, grid_width*1.3, 0));
     cloth_mesh.vertices = vertices.data();

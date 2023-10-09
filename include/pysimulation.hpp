@@ -12,7 +12,7 @@
 
 #define GRID_NODE_SIDE 20
 #define GRID_WIDTH_LENGTH 5.0f
-// #define ENABLE_CONTACT
+#define ENABLE_CONTACT
 
 class PySimulation {
     public:
@@ -49,6 +49,8 @@ class PySimulation {
         Mat getParameterJacobian();
 
         SparseMatrix getForcePositionJacobian();
+
+        SparseMatrix getForceVelocityJacobian();
 
         int getDoF();
 

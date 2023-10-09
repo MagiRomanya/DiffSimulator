@@ -17,11 +17,14 @@ def newton_iteration(sim: Simulation, x0, v0, xi, vi):
     """Update xi and vi to a new Newton-Rhapson iteration."""
     A = sim.getEquationMatrix()
     dfdx = sim.getForcePositionJacobian()
+    dfdv = sim.getForceVelocityJacobian()
     f = sim.getForce()
     # M v0 + h fi + h df/dx (x0 – xi) - (M – h² df/dx) vi
-    b = mass * v0 + h * f + h * dfdx @ (x0 - xi) - (mass - h**2 * dfdx) @ vi
-    delta_v = solve_system(A, b)
-    v1 = vi + delta_v
+    # b = mass * v0 + h * f + h * dfdx @ (x0 - xi) - (mass - h**2 * dfdx) @ vi
+    # delta_v = solve_system(A, b)
+    # v1 = vi + delta_v
+    b = mass * v0 + h * f + h * dfdx @ (x0 - xi) - h * dfdv @ vi
+    v1 = solve_system(A, b)
     x1 = x0 + h * v1
     return x1, v1
 

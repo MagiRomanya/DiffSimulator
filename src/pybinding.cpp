@@ -39,6 +39,7 @@ PYBIND11_MODULE(symulathon, m) {
         .def("getMassMatrix", &PySimulation::getMassMatrix)
         .def("getParameterJacobian", &PySimulation::getParameterJacobian)
         .def("getForcePositionJacobian", &PySimulation::getForcePositionJacobian)
+        .def("getForceVelocityJacobian", &PySimulation::getForceVelocityJacobian)
         .def("getDoF", &PySimulation::getDoF)
         .def("getTimeStep", &PySimulation::getTimeStep)
         .def("render_state", &PySimulation::render_state)
