@@ -1,11 +1,12 @@
 #include <cassert>
 #include <memory>
 
+#include "mesh_boundary.hpp"
 #include "gravity.hpp"
 #include "interaction_manager.hpp"
+#include "linear_algebra.hpp"
 #include "simulable.hpp"
 #include "simulable_generators.hpp"
-#include "mesh_boundary.hpp"
 #include "simulation.hpp"
 #include "simulation_parameters.hpp"
 #include "spring.hpp"
@@ -130,7 +131,7 @@ Simulable generate_mass_spring(Simulation* simulation,
     }
 
     // Add gravity
-    Vec3 gravity_vec = Vec3(0, -1, 0);
+    Vec3 gravity_vec = node_mass * Vec3(0, -1, 0);
     for (size_t i=0; i < sim.nDoF; i+=3) {
         interaction_manager->m_gravity.push_back(Gravity(sim.index + i, gravity_vec));
     }
@@ -232,7 +233,7 @@ Simulable generate_mass_spring(Simulation* simulation,
     }
 
     // Add gravity
-    Vec3 gravity_vec = Vec3(0, -1, 0);
+    Vec3 gravity_vec = node_mass * Vec3(0, -1, 0);
     for (size_t i=0; i < sim.nDoF; i+=3) {
         interaction_manager->m_gravity.push_back(Gravity(sim.index + i, gravity_vec));
     }
@@ -266,4 +267,22 @@ Parameter add_tilt_angle_parameter(SimulationParameters* parameters, const Simul
     Parameter tilt_angle_parameter = create_parameter(parameters, tilt_angle, index);
     calculate_initial_state_jacobian_tilt_angle(parameters, sim, tilt_angle_parameter);
     return tilt_angle_parameter;
+}
+
+void add_initial_velocity_parameters(SimulationParameters* parameters, const Simulable& sim, std::vector<Parameter>* out_initial_velocities) {
+    const unsigned int index = sim.index;
+    const unsigned int pindex = parameters->p.size();
+    const unsigned int nDoF = sim.nDoF;
+
+    parameters->p.conservativeResize(pindex+nDoF);
+    out_initial_velocities->resize(nDoF);
+
+    for (unsigned int i=0; i < nDoF; i++) {
+        // Create a paramter for each initial velocity
+        (*out_initial_velocities)[i] = create_parameter(parameters, parameters->q_dot0[index + i], pindex+i);
+
+        // Compute the initial conditions jacobian: in this case is a simple identity as the initial
+        // velocities themselves are the parameters.
+        parameters->dq_dot0_dp_triplets.push_back(Triplet(index+i, index+i, 1));
+    }
 }

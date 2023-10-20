@@ -45,25 +45,37 @@ int main() {
     std::vector<unsigned int> indices(cloth_mesh.indices, cloth_mesh.indices + n_indices);
 
     // Reposition the mesh in the world
-    const Scalar angle = -90;
-    rotate_vertices_arround_axis(vertices, Vec3(PI/2+angle, 0, 0));
+    const Scalar angle = 0;
+    rotate_vertices_arround_axis(vertices, Vec3(angle, 0, 0));
     translate_vertices(vertices, Vec3(0, grid_width*1.3, 0));
     cloth_mesh.vertices = vertices.data();
 
     Simulable mass_spring = generate_mass_spring(&simulation, vertices, indices, mass, stiffness, bend_stiffness);
 
-    // Fix the top 2 corners of the cloth
-    simulation.simulation_parameters.frozen_dof.push_back(0);
-    simulation.simulation_parameters.frozen_dof.push_back(1);
-    simulation.simulation_parameters.frozen_dof.push_back(2);
+    // const unsigned int index = mass_spring.index;
+    // const Scalar X_DISPLACEMENT_VALUE = 10;
+    // const Scalar Y_DISPLACEMENT_VALUE = -5;
+    // for (unsigned int i = index; i < index+nDoF; i+=3) {
+    //     simulation.simulation_parameters.q0[i] += X_DISPLACEMENT_VALUE;
+    //     simulation.simulation_parameters.q0[i+1] += Y_DISPLACEMENT_VALUE;
+    // }
 
-    simulation.simulation_parameters.frozen_dof.push_back((grid_node_width-1)*3);
-    simulation.simulation_parameters.frozen_dof.push_back((grid_node_width-1)*3+1);
-    simulation.simulation_parameters.frozen_dof.push_back((grid_node_width-1)*3+2);
+    // Fix the top 2 corners of the cloth
+    // simulation.simulation_parameters.frozen_dof.push_back(0);
+    // simulation.simulation_parameters.frozen_dof.push_back(1);
+    // simulation.simulation_parameters.frozen_dof.push_back(2);
+
+    // simulation.simulation_parameters.frozen_dof.push_back((grid_node_width-1)*3);
+    // simulation.simulation_parameters.frozen_dof.push_back((grid_node_width-1)*3+1);
+    // simulation.simulation_parameters.frozen_dof.push_back((grid_node_width-1)*3+2);
 
     // Add a sphere collider
     Sphere sphere = {Vec3(0,0,0), 2};
+    Mesh sphere_mesh = GenMeshSphere(2*0.95, 20, 20);
     simulation.contact_manager.sphere_colliders.push_back(sphere);
+    const Texture2D dragon_ball_texture = LoadTexture("resources/dragon_ball2.png");
+    Material dragon_ball_material = LoadMaterialDefault();
+    SetMaterialTexture(&dragon_ball_material, 0, dragon_ball_texture);
 
     //--------------------------------------------------------------------------------------
 
@@ -71,6 +83,7 @@ int main() {
     Camera3D camera = create_camera();
 
     bool game_paused = true;
+    unsigned int frames = 0;
 
     // Main game loop
     while (!WindowShouldClose())        // Detect window close button or ESC key
@@ -80,6 +93,7 @@ int main() {
         // Cameara && inputs
         {
             UpdateCamera(&camera, CAMERA_FREE);
+
             if (IsKeyDown(KEY_Z)) camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };
             // Quit
             if (IsKeyPressed(KEY_Q)) break;
@@ -87,13 +101,22 @@ int main() {
             if (IsKeyPressed(KEY_P)) game_paused = not game_paused;
             // Restart the simulation
             if (IsKeyPressed(KEY_R)) {
+                frames = 0;
                 state = simulation.getInitialState();
+            }
+            if (IsKeyPressed(KEY_C)) {
+                save_current_state(state, 100);
             }
         }
 
         // Update physics
         if (!game_paused) {
             simulation.step(&state);
+            frames++;
+        }
+        else if (IsKeyPressed(KEY_COMMA)) {
+            simulation.step(&state);
+            frames++;
         }
 
         // Update mesh
@@ -112,7 +135,8 @@ int main() {
                 DrawGrid(100, 1.0f);
                 for (size_t i = 0; i < simulation.contact_manager.sphere_colliders.size(); i++) {
                     const Sphere& s = simulation.contact_manager.sphere_colliders[i];
-                    DrawSphere(Vector3(s.center.x(), s.center.y(), s.center.z()), s.radius, GREEN);
+                    DrawMesh(sphere_mesh, dragon_ball_material, MatrixIdentity());
+                    DrawMesh(cloth_mesh, cloth_material, MatrixIdentity());
                 }
             }
             EndMode3D();
@@ -121,6 +145,10 @@ int main() {
             char time_text[50];
             sprintf(time_text, "Time = %f", state.time);
             DrawText(time_text, 50, 80, 20, BLACK);
+
+            char frame_text[50];
+            sprintf(frame_text, "Frames = %i", frames);
+            DrawText(frame_text, 50, 100, 20, BLACK);
         }
         EndDrawing();
         //----------------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 from solve_system import solve_system
 import meansquareloss
+import numpy as np
 
 
 class Backpropagation:
@@ -25,8 +26,8 @@ class Backpropagation:
         self.dv0dp = dv0dp
 
         # Loss information
-        # self.loss = meansquareloss.MeanSquareLoss()
-        self.loss = meansquareloss.MeanSquareLossLastState()
+        self.loss = meansquareloss.MeanSquareLoss()
+        # self.loss = meansquareloss.MeanSquareLossLastState()
         self.g_array = []
         self.dgdx_array = []
         self.dgdv_array = []
@@ -34,9 +35,10 @@ class Backpropagation:
         # Some non essential quantites
         self.x_array = []
         self.v_array = []
-        self.f_array = []
 
-    def step(self, x, v, x_t, v_t, equation_matrix, dfdp, dfdx, f=0):
+        self.only_last_state = True
+
+    def step(self, x, v, x_t, v_t, equation_matrix, dfdp, dfdx):
         """Store the necessary information douring forward."""
         self.loss.update_containers(x, v, x_t, v_t)
 
@@ -49,17 +51,25 @@ class Backpropagation:
         # Non essential quantities
         self.x_array.append(x)
         self.v_array.append(v)
-        self.f_array.append(f)
 
     def get_dgdp(self):
         """Run the backpropagation algorithm to calculate the loss gradient."""
         n_states = len(self.dfdp_array)
         n_steps = n_states - 1
         h = self.h
+        if (self.only_last_state):
+            dgdx = self.dgdx_array[-1]
+            dgdv = self.dgdv_array[-1]
+            self.dgdx_array = np.zeros(len(self.dgdx_array)).tolist()
+            self.dgdv_array = np.zeros(len(self.dgdv_array)).tolist()
+            self.dgdx_array[-1] = dgdx
+            self.dgdv_array[-1] = dgdv
         # self.dgdx and self.dgdv are the partial derivatives
         # dgdx and dgdv are the total derivatives
-        dgdx = [a.astype(float) for a in self.dgdx_array]
-        dgdv = [a.astype(float) for a in self.dgdv_array]
+        # dgdx = [a.astype(float) for a in self.dgdx_array]
+        # dgdv = [a.astype(float) for a in self.dgdv_array]
+        dgdx = [a for a in self.dgdx_array]
+        dgdv = [a for a in self.dgdv_array]
         S = [0] * n_states
 
         for i in range(n_steps - 1, -1, -1):
@@ -77,4 +87,7 @@ class Backpropagation:
 
     def get_g(self):
         """Return the loss function value of the recorded simulation."""
-        return sum(self.g_array)
+        if self.only_last_state:
+            return self.g_array[-1] # only last state
+        else:
+            return sum(self.g_array)

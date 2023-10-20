@@ -1,3 +1,4 @@
+#include <cassert>
 #include <raylib.h>
 #include <unistd.h>
 #include <vector>
@@ -11,6 +12,7 @@
 #include "simulable.hpp"
 #include "simulable_generators.hpp"
 #include "simulation.hpp"
+#include "simulation_parameters.hpp"
 #include "utility_functions.hpp"
 
 PySimulation::~PySimulation() {
@@ -45,6 +47,14 @@ PySimulation::PySimulation(std::vector<Scalar> k, std::vector<Scalar> k_bend, bo
     reset_simulation(k, k_bend);
 }
 
+PySimulation::PySimulation(std::vector<Scalar> initial_velocities, bool graphics)
+{
+
+    this->graphics = graphics;
+    set_up_simulation();
+    reset_simulation(initial_velocities);
+}
+
 void PySimulation::fill_containers() {
     const unsigned int nDoF = getDoF();
     const unsigned int nParameters = simulation.simulation_parameters.p.size();
@@ -76,8 +86,10 @@ void PySimulation::fill_containers() {
 }
 
 void PySimulation::set_state(Vector xi, Vector vi) {
-    state.q = xi;
-    state.q_dot = vi;
+    if (!simulation_paused) {
+        state.q = xi;
+        state.q_dot = vi;
+    }
 }
 
 SparseMatrix PySimulation::getEquationMatrix() { return equation_matrix; }
@@ -115,6 +127,7 @@ void PySimulation::render_state() {
     {
         UpdateCamera(&camera, CAMERA_FREE);
         if (IsKeyDown(KEY_Z)) camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };
+        if (IsKeyPressed(KEY_P)) simulation_paused = not simulation_paused;
     }
 
     // Update mesh GPU data
@@ -134,7 +147,7 @@ void PySimulation::render_state() {
                 DrawGrid(100, 1.0f);
                 for (size_t i = 0; i < simulation.contact_manager.sphere_colliders.size(); i++) {
                     const Sphere& s = simulation.contact_manager.sphere_colliders[i];
-                    DrawSphere(Vector3(s.center.x(), s.center.y(), s.center.z()), s.radius, GREEN);
+                    DrawSphere(Vector3(s.center.x(), s.center.y(), s.center.z()), s.radius*0.93, GREEN);
                 }
         }
         EndMode3D();
@@ -207,6 +220,42 @@ void PySimulation::reset_simulation(Scalar stiffness, Scalar bend_stiffness, Sca
     simulation = sim;
 
     add_tilt_angle_parameter(&simulation.simulation_parameters, mass_spring, tilt_angle);
+
+    // Add a sphere collider
+#ifdef ENABLE_CONTACT
+    Sphere sphere = {Vec3(0,0,0), 2};
+    simulation.contact_manager.sphere_colliders.push_back(sphere);
+#endif // ENABLE_CONTACT
+}
+
+void PySimulation::reset_simulation(std::vector<Scalar> initial_velocites) {
+    create_mesh();
+    Simulation sim;
+    mass_spring = generate_mass_spring(&sim, vertices, indices, node_mass, 100, 1);
+    assert(initial_velocites.size() == mass_spring.nDoF);
+
+    // Move cloth to initial position
+    unsigned int nDoF = mass_spring.nDoF;
+    unsigned int index = mass_spring.index;
+    const Scalar X_DISPLACEMENT_VALUE = 10;
+    const Scalar Y_DISPLACEMENT_VALUE = -5;
+    for (unsigned int i = index; i < index+nDoF; i+=3) {
+        // Set initial positions
+        sim.simulation_parameters.q0[i] += X_DISPLACEMENT_VALUE;
+        sim.simulation_parameters.q0[i+1] += Y_DISPLACEMENT_VALUE;
+
+        // Set initial velocities
+        sim.simulation_parameters.q_dot0[i] = initial_velocites[i - index];
+        sim.simulation_parameters.q_dot0[i+1] = initial_velocites[i+1 - index];
+        sim.simulation_parameters.q_dot0[i+2] = initial_velocites[i+2 - index];
+    }
+
+    state = sim.getInitialState();
+    simulation = sim;
+
+    std::vector<Parameter> initial_velocities_param;
+    add_initial_velocity_parameters(&simulation.simulation_parameters, mass_spring, &initial_velocities_param);
+    // std::cout << "INITIAL_VELOCITIES_INDEX " << initial_velocities_param[0].index << std::endl;
 
     // Add a sphere collider
 #ifdef ENABLE_CONTACT
@@ -316,8 +365,12 @@ void PySimulation::create_mesh() {
     indices = std::vector<unsigned int>(cloth_mesh.indices, cloth_mesh.indices + n_indices);
 
     // Reposition the mesh in the world
-    translate_vertices(vertices, Vec3(0, 0, GRID_WIDTH_LENGTH/2));
+    // translate_vertices(vertices, Vec3(0, 0, GRID_WIDTH_LENGTH/2));
+    // rotate_vertices_arround_axis(vertices, Vec3(angle, 0, 0));
+    // translate_vertices(vertices, Vec3(0, grid_width*2, 0));
+
     rotate_vertices_arround_axis(vertices, Vec3(angle, 0, 0));
-    translate_vertices(vertices, Vec3(0, grid_width*2, 0));
+    translate_vertices(vertices, Vec3(0, grid_width*1.3, 0));
+    cloth_mesh.vertices = vertices.data();
     cloth_mesh.vertices = vertices.data();
 }

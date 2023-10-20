@@ -53,5 +53,6 @@ PYBIND11_MODULE(symulathon, m) {
         .def("reset_simulation", static_cast<void (PySimulation::*)(Scalar, Scalar)>(&PySimulation::reset_simulation))
         .def("reset_simulation", static_cast<void (PySimulation::*)(Scalar, Scalar, Scalar)>(&PySimulation::reset_simulation))
         .def("reset_simulation", static_cast<void (PySimulation::*)(std::vector<Scalar>, std::vector<Scalar>)>(&PySimulation::reset_simulation))
+        .def("reset_simulation", static_cast<void (PySimulation::*)(std::vector<Scalar>)>(&PySimulation::reset_simulation))
         ;
 }

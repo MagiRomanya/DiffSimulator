@@ -6,6 +6,7 @@
 #include "linear_algebra.hpp"
 #include "simulable.hpp"
 #include "simulation.hpp"
+#include "simulation_parameters.hpp"
 
 
 /*
@@ -35,6 +36,8 @@ Simulable generate_mass_spring(Simulation* simulation,
 Simulable generate_mass_spring_pair(Simulation* simulation, Scalar node_mass, Scalar stiffness_value);
 
 Parameter add_tilt_angle_parameter(SimulationParameters* parameters, const Simulable& sim, Scalar tilt_angle);
+
+void add_initial_velocity_parameters(SimulationParameters* parameters, const Simulable& sim, std::vector<Parameter>* out_initial_velocities);
 
 
 #endif // SIMULABLE_GENERATORS_H_

@@ -10,6 +10,7 @@ A high tolerance could make the simulation not accurate enough and this would be
 forward and backward passes.
 
 I have found that a value of tol~1e-5 is good enough for the simulations we do here.
+Actually when introducing contact it is best to have lower tolerances 1e-6, 5000 iterations.
 
 The maximum iterations of the solver is also important but not as much as the tolerance.
 THEORY: If the system is not defined positive, imposing a strict tolerance will put strain in
@@ -46,6 +47,7 @@ def solve_system(eq_mat, eq_vec, threshold=1e-6, maxiter=500):
                                                  eq_vec,
                                                  tol=threshold,
                                                  maxiter=maxiter)
-    # result = scipy.sparse.linalg.spsolve(eq_mat, eq_vec)
     check_cg_convergence(convergence)
+
+    # result = scipy.sparse.linalg.spsolve(eq_mat, eq_vec)
     return result

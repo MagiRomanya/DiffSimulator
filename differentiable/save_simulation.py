@@ -27,8 +27,8 @@ if __name__ == "__main__":
     sim = Simulation()
 
     n_tension, n_bending = sim.getSpringNumbers()
-    k = [70] * n_tension
-    k_bend = [0.1] * n_bending
+    k = 70
+    k_bend = 0.1
 
     sim = Simulation(k, k_bend, True)
     h = sim.getTimeStep()

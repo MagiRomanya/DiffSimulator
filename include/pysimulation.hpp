@@ -25,8 +25,11 @@ class PySimulation {
         /* Three differentiable parameters. */
         PySimulation(Scalar k, Scalar k_bend, Scalar tilt_angle, bool graphics=false);
 
-        /* A lot of differentiable parameters. */
+        /* A lot of differentiable tension and stiffness parameters. */
         PySimulation(std::vector<Scalar> k, std::vector<Scalar> k_bend, bool graphics=false);
+
+        /* A lot differentiable initial conditions. */
+        PySimulation(std::vector<Scalar> initial_velocities, bool graphics=false);
 
         void fill_containers();
 
@@ -72,6 +75,8 @@ class PySimulation {
 
         void reset_simulation(std::vector<Scalar> stiffness, std::vector<Scalar> bend_stiffness);
 
+        void reset_simulation(std::vector<Scalar> initial_velocities);
+
     private:
         void set_up_simulation();
 
@@ -96,7 +101,7 @@ class PySimulation {
         // Rendering stuff
         bool graphics = false;
         Camera3D camera;
-        bool game_paused = false;
+        bool simulation_paused = false;
         Mesh cloth_mesh;
         std::vector<Scalar> vertices;
         std::vector<unsigned int> indices;
