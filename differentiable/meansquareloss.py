@@ -20,14 +20,14 @@ class MeanSquareLoss:
         result = 0
         for i in range(len(self.x)):
             result += (self.x[i] - self.x_s[i])**2
-            result += 0*(self.v[i] - self.v_s[i])**2
+            result += (self.v[i] - self.v_s[i])**2 * 0
         return result
 
     def get_position_derivative(self) -> np.array:
         return 2 * (self.x - self.x_s)
 
     def get_velocity_derivative(self) -> np.array:
-        return 2 * (self.v - self.v_s)
+        return 2 * (self.v - self.v_s) * 0
 
 
 # class MeanSquareLossLastState:

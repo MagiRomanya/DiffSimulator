@@ -27,6 +27,9 @@ if __name__ == "__main__":
     sim = Simulation()
 
     n_tension, n_bending = sim.getSpringNumbers()
+    # paramters = np.genfromtxt("paramters.csv", delimiter=",")
+    # k = paramters[:n_tension]
+    # k_bend = paramters[n_tension:]
     k = 70
     k_bend = 0.1
 

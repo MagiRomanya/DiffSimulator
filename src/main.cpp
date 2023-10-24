@@ -121,7 +121,7 @@ int main() {
 
         // Update mesh
         Vector mesh_data = state.q.segment(mass_spring.index, mass_spring.index+mass_spring.nDoF);
-        UpdateMeshBuffer(cloth_mesh, 0, mesh_data.data(), mesh_data.size()*sizeof(float), 0);
+        UpdateMeshBuffer(cloth_mesh, 0, mesh_data.data(), mesh_data.size()*sizeof(Scalar), 0);
         //----------------------------------------------------------------------------------
         // Draw
         //----------------------------------------------------------------------------------
@@ -136,7 +136,7 @@ int main() {
                 for (size_t i = 0; i < simulation.contact_manager.sphere_colliders.size(); i++) {
                     const Sphere& s = simulation.contact_manager.sphere_colliders[i];
                     DrawMesh(sphere_mesh, dragon_ball_material, MatrixIdentity());
-                    DrawMesh(cloth_mesh, cloth_material, MatrixIdentity());
+                    // DrawMesh(cloth_mesh, cloth_material, MatrixIdentity());
                 }
             }
             EndMode3D();

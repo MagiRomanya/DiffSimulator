@@ -1,4 +1,5 @@
 #include <cassert>
+#include <iostream>
 #include <raylib.h>
 #include <unistd.h>
 #include <vector>
@@ -86,10 +87,8 @@ void PySimulation::fill_containers() {
 }
 
 void PySimulation::set_state(Vector xi, Vector vi) {
-    if (!simulation_paused) {
-        state.q = xi;
-        state.q_dot = vi;
-    }
+    state.q = xi;
+    state.q_dot = vi;
 }
 
 SparseMatrix PySimulation::getEquationMatrix() { return equation_matrix; }
@@ -123,11 +122,11 @@ std::array<unsigned int, 2> PySimulation::getNumberOfSprings() { return {n_flex,
 
 void PySimulation::render_state() {
     if (not graphics) return;
+
     // Cameara && inputs
     {
         UpdateCamera(&camera, CAMERA_FREE);
         if (IsKeyDown(KEY_Z)) camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };
-        if (IsKeyPressed(KEY_P)) simulation_paused = not simulation_paused;
     }
 
     // Update mesh GPU data
@@ -145,10 +144,13 @@ void PySimulation::render_state() {
         {
                 DrawMesh(cloth_mesh, cloth_material, MatrixIdentity());
                 DrawGrid(100, 1.0f);
+                Model frame = LoadModel("../resources/frame.obj");
+                DrawModel(frame, Vector3{0.0,6.5,6.5}, 25, BROWN);
                 for (size_t i = 0; i < simulation.contact_manager.sphere_colliders.size(); i++) {
                     const Sphere& s = simulation.contact_manager.sphere_colliders[i];
                     DrawSphere(Vector3(s.center.x(), s.center.y(), s.center.z()), s.radius*0.93, GREEN);
                 }
+
         }
         EndMode3D();
     }
@@ -228,10 +230,10 @@ void PySimulation::reset_simulation(Scalar stiffness, Scalar bend_stiffness, Sca
 #endif // ENABLE_CONTACT
 }
 
-void PySimulation::reset_simulation(std::vector<Scalar> initial_velocites) {
+void PySimulation::reset_simulation(Scalar tension_stiffness, Scalar bending_stiffness, std::vector<Scalar> initial_velocites) {
     create_mesh();
     Simulation sim;
-    mass_spring = generate_mass_spring(&sim, vertices, indices, node_mass, 100, 1);
+    mass_spring = generate_mass_spring(&sim, vertices, indices, node_mass, tension_stiffness, bending_stiffness);
     assert(initial_velocites.size() == mass_spring.nDoF);
 
     // Move cloth to initial position
@@ -241,7 +243,43 @@ void PySimulation::reset_simulation(std::vector<Scalar> initial_velocites) {
     const Scalar Y_DISPLACEMENT_VALUE = -5;
     for (unsigned int i = index; i < index+nDoF; i+=3) {
         // Set initial positions
-        sim.simulation_parameters.q0[i] += X_DISPLACEMENT_VALUE;
+        // sim.simulation_parameters.q0[i] += X_DISPLACEMENT_VALUE;
+        sim.simulation_parameters.q0[i+1] += Y_DISPLACEMENT_VALUE;
+
+        // Set initial velocities
+        sim.simulation_parameters.q_dot0[i] = initial_velocites[i - index];
+        sim.simulation_parameters.q_dot0[i+1] = initial_velocites[i+1 - index];
+        sim.simulation_parameters.q_dot0[i+2] = initial_velocites[i+2 - index];
+    }
+
+    state = sim.getInitialState();
+    simulation = sim;
+
+    std::vector<Parameter> initial_velocities_param;
+    add_initial_velocity_parameters(&simulation.simulation_parameters, mass_spring, &initial_velocities_param);
+    // std::cout << "INITIAL_VELOCITIES_INDEX " << initial_velocities_param[0].index << std::endl;
+
+    // Add a sphere collider
+#ifdef ENABLE_CONTACT
+    Sphere sphere = {Vec3(0,0,0), 2};
+    simulation.contact_manager.sphere_colliders.push_back(sphere);
+#endif // ENABLE_CONTACT
+}
+
+void PySimulation::reset_simulation(std::vector<Scalar> initial_velocites) {
+    create_mesh();
+    Simulation sim;
+    mass_spring = generate_mass_spring(&sim, vertices, indices, node_mass, 200, 1);
+    assert(initial_velocites.size() == mass_spring.nDoF);
+
+    // Move cloth to initial position
+    unsigned int nDoF = mass_spring.nDoF;
+    unsigned int index = mass_spring.index;
+    const Scalar X_DISPLACEMENT_VALUE = 10;
+    const Scalar Y_DISPLACEMENT_VALUE = -5;
+    for (unsigned int i = index; i < index+nDoF; i+=3) {
+        // Set initial positions
+        // sim.simulation_parameters.q0[i] += X_DISPLACEMENT_VALUE;
         sim.simulation_parameters.q0[i+1] += Y_DISPLACEMENT_VALUE;
 
         // Set initial velocities
@@ -295,7 +333,7 @@ void PySimulation::set_up_simulation() {
         // Disable raylib info and warnings logs
         SetTraceLogLevel(LOG_ERROR);
         // Create a camera with 300 fps
-        camera = create_camera(300);
+        camera = create_camera(60);
     }
     //--------------------------------------------------------------------------------------
 
@@ -354,7 +392,7 @@ void PySimulation::create_mesh() {
     cloth_mesh = GenMeshPlaneNoGPU(grid_width, grid_width, grid_node_width-1, grid_node_width-1);
     if (graphics) {
         UploadMesh(&cloth_mesh, true);
-        const Texture2D cloth_texture = LoadTexture("../resources/warning.png");
+        const Texture2D cloth_texture = LoadTexture("../resources/gioconda.png");
         cloth_material = LoadMaterialDefault();
         SetMaterialTexture(&cloth_material, 0, cloth_texture);
     }

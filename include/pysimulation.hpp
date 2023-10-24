@@ -12,7 +12,7 @@
 
 #define GRID_NODE_SIDE 20
 #define GRID_WIDTH_LENGTH 5.0f
-#define ENABLE_CONTACT
+// #define ENABLE_CONTACT
 
 class PySimulation {
     public:
@@ -77,6 +77,23 @@ class PySimulation {
 
         void reset_simulation(std::vector<Scalar> initial_velocities);
 
+        void reset_simulation(Scalar tension_stiffness, Scalar bending_stiffness, std::vector<Scalar> initial_velocites);
+
+        inline bool window_should_close() {
+            if (graphics)
+                return WindowShouldClose();
+            std::cerr << "WARNING: using window sould close in a non graphic simulation." << std::endl;
+            return false;
+        }
+
+        inline bool is_key_pressed(int key) {
+            if (graphics)
+                return IsKeyPressed(key);
+            std::cerr << "WARNING: using is key pressed in a non graphic simulation." << std::endl;
+            return false;
+
+        }
+
     private:
         void set_up_simulation();
 
@@ -101,7 +118,6 @@ class PySimulation {
         // Rendering stuff
         bool graphics = false;
         Camera3D camera;
-        bool simulation_paused = false;
         Mesh cloth_mesh;
         std::vector<Scalar> vertices;
         std::vector<unsigned int> indices;
