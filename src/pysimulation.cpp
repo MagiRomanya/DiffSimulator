@@ -150,7 +150,7 @@ void PySimulation::render_state() {
             // DrawModel(frame, Vector3{0.0,6.5,6.5}, 25, BROWN);
             for (size_t i = 0; i < simulation.contact_manager.sphere_colliders.size(); i++) {
                 const Sphere& s = simulation.contact_manager.sphere_colliders[i];
-                DrawSphere(Vector3(s.center.x(), s.center.y(), s.center.z()), s.radius*0.93, GREEN);
+                DrawSphere(Vector3{s.center.x(), s.center.y(), s.center.z()}, s.radius*0.93, GREEN);
             }
         }
         EndMode3D();
