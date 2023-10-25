@@ -11,6 +11,11 @@ reader = SimulationReader(dof)
 trajectory = np.array(reader.get_all_history()).T
 n_states = len(trajectory)
 
+# reader_target = SimulationReader(dof, "record_shape.csv")
+# trajectory_target = np.array(reader_target.get_all_history()).T
+# target_x = trajectory_target[-1][:dof]
+# target_v = trajectory_target[-1][dof:]
+
 print(f"Number of DoF : {dof}")
 print(f"Number of states : {n_states}")
 
@@ -43,6 +48,8 @@ set_state(current_state_index)
 
 while not sim.window_should_close():
     sim.render_state()
+    # sim.set_state(target_x, target_v)
+    # sim.render_state()
     if GAME_PAUSED:
         if (sim.is_key_pressed(KEY_PERIOD)):
             next_state()

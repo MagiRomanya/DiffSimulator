@@ -142,12 +142,12 @@ void PySimulation::render_state() {
         DrawFPS(50, 50);
         BeginMode3D(camera);
         {
-            Model cloth_model = LoadModelFromMesh(cloth_mesh);
-            DrawModelWires(cloth_model, Vector3{0}, 1, PURPLE);
-            // DrawMesh(cloth_mesh, cloth_material, MatrixIdentity());
+            // Model cloth_model = LoadModelFromMesh(cloth_mesh);
+            // DrawModelWires(cloth_model, Vector3{0}, 1, PURPLE);
+            DrawMesh(cloth_mesh, cloth_material, MatrixIdentity());
             DrawGrid(100, 1.0f);
-            Model frame = LoadModel("../resources/frame.obj");
-            DrawModel(frame, Vector3{0.0,6.5,6.5}, 25, BROWN);
+            // Model frame = LoadModel("../resources/frame.obj");
+            // DrawModel(frame, Vector3{0.0,6.5,6.5}, 25, BROWN);
             for (size_t i = 0; i < simulation.contact_manager.sphere_colliders.size(); i++) {
                 const Sphere& s = simulation.contact_manager.sphere_colliders[i];
                 DrawSphere(Vector3(s.center.x(), s.center.y(), s.center.z()), s.radius*0.93, GREEN);
@@ -392,7 +392,7 @@ void PySimulation::create_mesh() {
     cloth_mesh = GenMeshPlaneNoGPU(grid_width, grid_width, grid_node_width-1, grid_node_width-1);
     if (graphics) {
         UploadMesh(&cloth_mesh, true);
-        const Texture2D cloth_texture = LoadTexture("../resources/gioconda.png");
+        const Texture2D cloth_texture = LoadTexture("../resources/warning.png");
         cloth_material = LoadMaterialDefault();
         SetMaterialTexture(&cloth_material, 0, cloth_texture);
     }
