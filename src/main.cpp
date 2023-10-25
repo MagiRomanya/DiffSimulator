@@ -94,7 +94,7 @@ int main() {
         {
             UpdateCamera(&camera, CAMERA_FREE);
 
-            if (IsKeyDown(KEY_Z)) camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };
+            if (IsKeyDown(KEY_Z)) camera.target = Vector3{ 0.0f, 0.0f, 0.0f };
             // Quit
             if (IsKeyPressed(KEY_Q)) break;
             // Pause the simulation
