@@ -1,7 +1,6 @@
 #include <cassert>
 #include <iostream>
 #include <raylib.h>
-#include <unistd.h>
 #include <vector>
 
 #include "contact.hpp"
