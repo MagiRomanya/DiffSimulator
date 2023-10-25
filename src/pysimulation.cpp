@@ -142,15 +142,16 @@ void PySimulation::render_state() {
         DrawFPS(50, 50);
         BeginMode3D(camera);
         {
-                DrawMesh(cloth_mesh, cloth_material, MatrixIdentity());
-                DrawGrid(100, 1.0f);
-                Model frame = LoadModel("../resources/frame.obj");
-                DrawModel(frame, Vector3{0.0,6.5,6.5}, 25, BROWN);
-                for (size_t i = 0; i < simulation.contact_manager.sphere_colliders.size(); i++) {
-                    const Sphere& s = simulation.contact_manager.sphere_colliders[i];
-                    DrawSphere(Vector3(s.center.x(), s.center.y(), s.center.z()), s.radius*0.93, GREEN);
-                }
-
+            Model cloth_model = LoadModelFromMesh(cloth_mesh);
+            DrawModelWires(cloth_model, Vector3{0}, 1, PURPLE);
+            // DrawMesh(cloth_mesh, cloth_material, MatrixIdentity());
+            DrawGrid(100, 1.0f);
+            Model frame = LoadModel("../resources/frame.obj");
+            DrawModel(frame, Vector3{0.0,6.5,6.5}, 25, BROWN);
+            for (size_t i = 0; i < simulation.contact_manager.sphere_colliders.size(); i++) {
+                const Sphere& s = simulation.contact_manager.sphere_colliders[i];
+                DrawSphere(Vector3(s.center.x(), s.center.y(), s.center.z()), s.radius*0.93, GREEN);
+            }
         }
         EndMode3D();
     }
@@ -230,11 +231,11 @@ void PySimulation::reset_simulation(Scalar stiffness, Scalar bend_stiffness, Sca
 #endif // ENABLE_CONTACT
 }
 
-void PySimulation::reset_simulation(Scalar tension_stiffness, Scalar bending_stiffness, std::vector<Scalar> initial_velocites) {
+void PySimulation::reset_simulation(Scalar tension_stiffness, Scalar bending_stiffness, std::vector<Scalar> initial_velocities) {
     create_mesh();
     Simulation sim;
     mass_spring = generate_mass_spring(&sim, vertices, indices, node_mass, tension_stiffness, bending_stiffness);
-    assert(initial_velocites.size() == mass_spring.nDoF);
+    assert(initial_velocities.size() == mass_spring.nDoF);
 
     // Move cloth to initial position
     unsigned int nDoF = mass_spring.nDoF;
@@ -247,9 +248,9 @@ void PySimulation::reset_simulation(Scalar tension_stiffness, Scalar bending_sti
         sim.simulation_parameters.q0[i+1] += Y_DISPLACEMENT_VALUE;
 
         // Set initial velocities
-        sim.simulation_parameters.q_dot0[i] = initial_velocites[i - index];
-        sim.simulation_parameters.q_dot0[i+1] = initial_velocites[i+1 - index];
-        sim.simulation_parameters.q_dot0[i+2] = initial_velocites[i+2 - index];
+        sim.simulation_parameters.q_dot0[i] = initial_velocities[i - index];
+        sim.simulation_parameters.q_dot0[i+1] = initial_velocities[i+1 - index];
+        sim.simulation_parameters.q_dot0[i+2] = initial_velocities[i+2 - index];
     }
 
     state = sim.getInitialState();
@@ -257,7 +258,6 @@ void PySimulation::reset_simulation(Scalar tension_stiffness, Scalar bending_sti
 
     std::vector<Parameter> initial_velocities_param;
     add_initial_velocity_parameters(&simulation.simulation_parameters, mass_spring, &initial_velocities_param);
-    // std::cout << "INITIAL_VELOCITIES_INDEX " << initial_velocities_param[0].index << std::endl;
 
     // Add a sphere collider
 #ifdef ENABLE_CONTACT
@@ -329,9 +329,9 @@ void PySimulation::set_up_simulation() {
     const int screenWidth = 800*2;
     const int screenHeight = 450*2;
     if (graphics) {
-        InitWindow(screenWidth, screenHeight, "Simulator");
         // Disable raylib info and warnings logs
         SetTraceLogLevel(LOG_ERROR);
+        InitWindow(screenWidth, screenHeight, "Simulator");
         // Create a camera with 300 fps
         camera = create_camera(60);
     }

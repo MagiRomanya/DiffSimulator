@@ -136,6 +136,7 @@ Simulable generate_mass_spring(Simulation* simulation,
         interaction_manager->m_gravity.push_back(Gravity(sim.index + i, gravity_vec));
     }
 
+    simulation->simulables.push_back(sim);
     return sim;
 }
 
@@ -242,6 +243,7 @@ Simulable generate_mass_spring(Simulation* simulation,
     //     std::cout << "Value p("<< i << ") = "  << sim_parameters->p[i] << std::endl;
     // }
 
+    simulation->simulables.push_back(sim);
     return sim;
 }
 
@@ -283,6 +285,8 @@ void add_initial_velocity_parameters(SimulationParameters* parameters, const Sim
 
         // Compute the initial conditions jacobian: in this case is a simple identity as the initial
         // velocities themselves are the parameters.
-        parameters->dq_dot0_dp_triplets.push_back(Triplet(index+i, index+i, 1));
+        //
+        // std::cout << "Pindex= " << pindex << std::endl;
+        parameters->dq_dot0_dp_triplets.push_back(Triplet(index+i, pindex + index+i, 1));
     }
 }

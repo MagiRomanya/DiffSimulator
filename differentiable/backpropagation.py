@@ -27,7 +27,6 @@ class Backpropagation:
 
         # Loss information
         self.loss = meansquareloss.MeanSquareLoss()
-        # self.loss = meansquareloss.MeanSquareLossLastState()
         self.g_array = []
         self.dgdx_array = []
         self.dgdv_array = []
@@ -81,7 +80,7 @@ class Backpropagation:
             dgdv[i] += sys_solve @ self.mass
             S[i+1] = sys_solve @ (h*self.dfdp_array[i+1])
 
-        S[0] = dgdx[0] * self.dx0dp + dgdv[0] * self.dv0dp
+        S[0] = dgdx[0] @ self.dx0dp + dgdv[0] @ self.dv0dp
 
         return sum(S)
 

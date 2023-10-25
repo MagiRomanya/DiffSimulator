@@ -41,6 +41,7 @@ set(SOURCE_FILES
   src/utility_functions.cpp
   src/gen_mesh_plane.cpp
   src/contact.cpp
+  src/free_particle.cpp
 )
 
 set(SOURCE_FILES_MAIN
@@ -83,6 +84,7 @@ set(PYTHON_MODULE_SRC
   ${SOURCE_FILES}
   src/pysimulation.cpp
   src/pybinding.cpp
+  # src/py_free_particle.cpp
   )
 
 pybind11_add_module(${PYTHON_MODULE_NAME} MODULE ${PYTHON_MODULE_SRC})

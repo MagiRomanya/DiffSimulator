@@ -27,10 +27,11 @@ if __name__ == "__main__":
     sim = Simulation()
 
     n_tension, n_bending = sim.getSpringNumbers()
-    param = np.genfromtxt("paramters_gioconda.csv", delimiter=",")
-    k = param[0]
-    k_bend = param[1]
-    vel = param[2:]
+    param = np.genfromtxt("paramters_gioconda_xd.csv", delimiter=",")
+    print(len(param))
+    k = 0
+    k_bend = 0
+    vel = param
 
     sim = Simulation(0,0, True)
     sim.reset_simulation(k, k_bend, vel)

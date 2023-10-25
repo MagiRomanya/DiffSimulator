@@ -17,20 +17,21 @@ side_length = 5
 n_nodes = 20
 sphere_radius = side_length / (2.*np.pi)
 
-dangle = 2.*np.pi / 20
-angle = np.pi / 2. + dangle / 2.
 
 def sphere_point(angle):
     return sphere_radius * np.cos(angle), start_y + sphere_radius * np.sin(angle)
 
 # We are working in the x-y plane, z axis is depth
-# for i in range(0, len(x), 3):
-#     print(f"x={x[i]}, y={x[i+1]}, z={x[i+2]}")
+def make_cilinder():
+    dangle = 2.*np.pi / 20
+    angle = np.pi / 2. + dangle / 2.
+    for i in range(0, len(x), 3):
+        print(f"x={x[i]}, y={x[i+1]}, z={x[i+2]}")
 
-#     xx, yy = sphere_point(angle)
-#     x[i] = xx
-#     x[i+1] = yy
-#     angle += dangle
+        xx, yy = sphere_point(angle)
+        x[i] = xx
+        x[i+1] = yy
+        angle += dangle
 
 def rotate_vertices(x: np.array, angle: float):
     y_offset = 10
@@ -58,7 +59,9 @@ def rotate_vertices(x: np.array, angle: float):
         x[i+1] = new_pos[1] +y_offset
         x[i+2] = new_pos[2]
 
-rotate_vertices(x, np.pi/2)
+
+make_cilinder()
+# rotate_vertices(x, np.pi/2)
 sim.set_state(x, np.zeros(dof))
 
 for i in range(100):

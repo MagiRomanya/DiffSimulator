@@ -4,6 +4,7 @@
 
 #include "interaction_manager.hpp"
 #include "physics_state.hpp"
+#include "simulable.hpp"
 #include "simulation_parameters.hpp"
 #include "contact.hpp"
 
@@ -14,6 +15,7 @@ struct Simulation {
 
     ContactManager contact_manager;
 
+    std::vector<Simulable> simulables;
 
     PhysicsState getInitialState() {
         PhysicsState state;

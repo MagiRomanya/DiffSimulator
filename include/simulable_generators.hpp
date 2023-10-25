@@ -39,5 +39,6 @@ Parameter add_tilt_angle_parameter(SimulationParameters* parameters, const Simul
 
 void add_initial_velocity_parameters(SimulationParameters* parameters, const Simulable& sim, std::vector<Parameter>* out_initial_velocities);
 
+Simulable generate_free_particle(Simulation* simulation, Scalar mass, const Vec3& x0, const Vec3& v0);
 
 #endif // SIMULABLE_GENERATORS_H_
