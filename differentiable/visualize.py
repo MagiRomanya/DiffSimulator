@@ -7,7 +7,7 @@ import numpy as np
 sim = Simulation(0,0,True)
 dof = sim.getDoF()
 
-reader = SimulationReader(dof)
+reader = SimulationReader(dof, "record.csv")
 trajectory = np.array(reader.get_all_history()).T
 n_states = len(trajectory)
 

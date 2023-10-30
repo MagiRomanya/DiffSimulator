@@ -60,8 +60,8 @@ def rotate_vertices(x: np.array, angle: float):
         x[i+2] = new_pos[2]
 
 
-make_cilinder()
-# rotate_vertices(x, np.pi/2)
+# make_cilinder()
+rotate_vertices(x, np.pi/2)
 sim.set_state(x, np.zeros(dof))
 
 for i in range(100):
