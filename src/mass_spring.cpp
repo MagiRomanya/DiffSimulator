@@ -285,8 +285,6 @@ void add_initial_velocity_parameters(SimulationParameters* parameters, const Sim
 
         // Compute the initial conditions jacobian: in this case is a simple identity as the initial
         // velocities themselves are the parameters.
-        //
-        // std::cout << "Pindex= " << pindex << std::endl;
         parameters->dq_dot0_dp_triplets.push_back(Triplet(index+i, pindex + index+i, 1));
     }
 }

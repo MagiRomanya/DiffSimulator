@@ -124,7 +124,7 @@ void PySimulation::render_state() {
 
     // Cameara && inputs
     {
-        UpdateCamera(&camera, CAMERA_FREE);
+        // UpdateCamera(&camera, CAMERA_FREE);
         if (IsKeyDown(KEY_Z)) camera.target = Vector3{ 0.0f, 0.0f, 0.0f };
     }
 
@@ -236,14 +236,14 @@ void PySimulation::reset_simulation(Scalar tension_stiffness, Scalar bending_sti
     mass_spring = generate_mass_spring(&sim, vertices, indices, node_mass, tension_stiffness, bending_stiffness);
     assert(initial_velocities.size() == mass_spring.nDoF);
 
-    // Move cloth to initial position
+    // Move cloth to initial positio// n
     unsigned int nDoF = mass_spring.nDoF;
     unsigned int index = mass_spring.index;
     const Scalar X_DISPLACEMENT_VALUE = 10;
     const Scalar Y_DISPLACEMENT_VALUE = -5;
     for (unsigned int i = index; i < index+nDoF; i+=3) {
         // Set initial positions
-        // sim.simulation_parameters.q0[i] += X_DISPLACEMENT_VALUE;
+        sim.simulation_parameters.q0[i] += X_DISPLACEMENT_VALUE;
         sim.simulation_parameters.q0[i+1] += Y_DISPLACEMENT_VALUE;
 
         // Set initial velocities
@@ -278,7 +278,7 @@ void PySimulation::reset_simulation(std::vector<Scalar> initial_velocites) {
     const Scalar Y_DISPLACEMENT_VALUE = -5;
     for (unsigned int i = index; i < index+nDoF; i+=3) {
         // Set initial positions
-        // sim.simulation_parameters.q0[i] += X_DISPLACEMENT_VALUE;
+        sim.simulation_parameters.q0[i] += X_DISPLACEMENT_VALUE;
         sim.simulation_parameters.q0[i+1] += Y_DISPLACEMENT_VALUE;
 
         // Set initial velocities
@@ -325,8 +325,10 @@ void PySimulation::reset_simulation(std::vector<Scalar> stiffness, std::vector<S
 }
 
 void PySimulation::set_up_simulation() {
-    const int screenWidth = 800*2;
-    const int screenHeight = 450*2;
+    // const int screenWidth = 800*2;
+    // const int screenHeight = 450*2;
+    const int screenWidth = 1920;
+    const int screenHeight = 1080;
     if (graphics) {
         // Disable raylib info and warnings logs
         SetTraceLogLevel(LOG_ERROR);

@@ -6,7 +6,8 @@ import sys
 import getopt
 
 
-sim = Simulation()
+graphics = True
+sim = Simulation(1,1,graphics)
 nFlex, nBend = sim.getSpringNumbers()
 nDoF = sim.getDoF()
 mass = sim.getMassMatrix()
